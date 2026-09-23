@@ -1,6 +1,6 @@
 ---
-title: "about"
-author: "Anna Leach"
+title: "Beaky Blinders"
+author: "Andrew, Maria, Stephanie"
 date: "2026-09-22"
 output: html_document
 ---
