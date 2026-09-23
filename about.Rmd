@@ -5,7 +5,7 @@ date: "2026-09-22"
 output: html_document
 ---
 
-This project was developed by Beaky Blinders, the project team is Andrew, Stephanie, and Mari For INFO 526 - Data Analysis and Visualization at the University of Arizona, taught by Dr. Anna R. Leach. The team is comprised of the following team members.
+This project was developed by Beaky Blinders, the project team is Andrew, Stephanie, and Maria. For INFO 526 - Data Analysis and Visualization at the University of Arizona, taught by Dr. Anna R. Leach. The team is comprised of the following team members.
 
 Team member 1: Andrew King.
 
