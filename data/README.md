@@ -11,6 +11,11 @@ and examine whether these genera remain physically distinct despite sharing an a
 lifestyle. 
 
 # Codebook for [Many Penguins] Dataset
+- Description: This is the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 
+(week 28), curated by Ben Bolker of McMaster University. It was created as a richer 
+alternative to the Palmer Penguins dataset that includes only 3 species. Many Penguins 
+dataset contains the penguins (Spheniscidae) records from the much larger AVONET database 
+and includes 18 species. 
 
 ## Variable Names and Descriptions:
 
