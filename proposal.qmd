@@ -3,6 +3,8 @@ title: "Beaks and Flippers"
 subtitle: "How Beak Shape and Wing Structure Vary Across Penguin Genera"
 format: html
 editor: visual
+team_name: "Beaky Blinders"
+authors: Andrew King, Maria Sans-Fuentes, Stephanie Wu
 ---
 
 ```{r}
@@ -15,12 +17,11 @@ library(tidyverse)
 
 ## Introduction
 
-We selected the Many Penguins dataset, derived from the global AVONET database (Tobias et al., 2022), because it lets us explore a question inspired by evolution: do closely related groups that share the same lifestyle end up with similar physical traits? The dataset includes 10 distinct morphometric measurements (physical body measurements) for 93 penguins from 18 species within 6 genera. The dataset is cross-sectional and includes measurements of present-day penguin species, which provides a snapshot of penguins today rather than a record of their changes over time. Our goal is to describe and compare how beak shape and wing structure differ between the various penguin genera, and whether different genera remain physically distinct despite sharing an aquatic lifestyle. 
+We selected the Many Penguins dataset, derived from the global AVONET database (Tobias et al., 2022), because it lets us explore a question inspired by evolution: do closely related groups that share the same lifestyle end up with similar physical traits? The dataset includes 10 distinct morphometric measurements (physical body measurements) for 93 penguins from 18 species within 6 genera. The dataset is cross-sectional and includes measurements of present-day penguin species, which provides a snapshot of penguins today rather than a record of their changes over time. Our goal is to describe and compare how beak shape and wing structure differ between the various penguin genera, and whether different genera remain physically distinct despite sharing an aquatic lifestyle.
 
-One of the variables, the hand-wing index (HWI), is typically used as an indicator of flight efficiency and dispersal in flying birds (Sheard et al., 2020). Because penguins do not fly, we only consider HWI as a measure of wing shape, and we question whether it varies among genera. If the HWI is similar across genera, this measure outcome would be consistent with the  adaptation of penguin wings into swimming flippers. However, since all penguins share a common ancestor, similar traits could also reflect shared ancestry. Because the dataset does not include environmental or ecological variables, we will present this, and any other biological explanations for our results, as possible interpretations that are based on previous knowledge rather than conclusions supported by our data.  
+One of the variables, the hand-wing index (HWI), is typically used as an indicator of flight efficiency and dispersal in flying birds (Sheard et al., 2020). Because penguins do not fly, we only consider HWI as a measure of wing shape, and we question whether it varies among genera. If the HWI is similar across genera, this measure outcome would be consistent with the adaptation of penguin wings into swimming flippers. However, since all penguins share a common ancestor, similar traits could also reflect shared ancestry. Because the dataset does not include environmental or ecological variables, we will present this, and any other biological explanations for our results, as possible interpretations that are based on previous knowledge rather than conclusions supported by our data.
 
-Although the subject is specific to penguins, the dataset fits the goals of this class. It includes several related continuous measurements, which lets us practice visualizing multivariate data. For example, using Principal Component Analysis and biplots, we can summarize four beak measurements in two-dimensional plots, and we can visually compare distributions between groups using boxplots. The dataset also presents real-world challenges, such as missing values (up to 12% in some fields) and uneven sample sizes. We will visualize the pattern of missing values during our exploratory analysis and show sample sizes on our plots, so our audience can critique how reliable each comparison is.  
-
+Although the subject is specific to penguins, the dataset fits the goals of this class. It includes several related continuous measurements, which lets us practice visualizing multivariate data. For example, using Principal Component Analysis and biplots, we can summarize four beak measurements in two-dimensional plots, and we can visually compare distributions between groups using boxplots. The dataset also presents real-world challenges, such as missing values (up to 12% in some fields) and uneven sample sizes. We will visualize the pattern of missing values during our exploratory analysis and show sample sizes on our plots, so our audience can critique how reliable each comparison is.
 
 ## Dataset
 
@@ -48,7 +49,7 @@ glimpse(many_penguins)
 
 ### Description
 
-This is the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 (week 28), curated by Ben Bolker of McMaster University. It was created as a richer alternative to the Palmer Penguins dataset that includes only 3 species. Many Penguins dataset contains the penguins (Spheniscidae) records from the much larger AVONET database and includes 18 species. 
+This is the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 (week 28), curated by Ben Bolker of McMaster University. It was created as a richer alternative to the Palmer Penguins dataset that includes only 3 species. Many Penguins dataset contains the penguins (Spheniscidae) records from the much larger AVONET database and includes 18 species.
 
 ### Provenance/Sources
 
@@ -67,7 +68,7 @@ This is the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 (week
 ### Variables
 
 | Variable | Class | Description |
-|-------------------|-------------------|-----------------------------------|
+|-------------------|-------------------|----------------------------------|
 | species | factor | Penguin species name. |
 | genus | factor | Penguin genus name. |
 | shortname | factor | Abbreviated species name. |
@@ -87,58 +88,56 @@ Concerns and Additional Information:\
 - **Missing data:** the readme explicitly notes up to 12% of some measurement types are missing, which is worth checking missingness patterns per variable/species before modeling, and considering how to handle it (imputation, complete-case analysis, models tolerant of missingness).\
 - **Age was dropped:** the cleaning script excluded an Age column because it was uninformative (0 for all but one bird).\
 - **Hand-wing index caveat:** the readme flags that species-average HWI values here differ from published estimates in Sheard et al. (2020), due to differing sampling intensity across species and taxonomic effects tied to the BirdLife species list used\
-- **Uneven sampling:** 93 individuals across 18 species is not an even ~5 per species, in which some genera/species will have far fewer individuals, This can make comparisons between genera less reliable. It can also let well-sampled species dominate their genus. We will check sample sizes per genus and species before running our analyses and keep this in mind when interpreting the results.\
+- **Uneven sampling:** 93 individuals across 18 species is not an even \~5 per species, in which some genera/species will have far fewer individuals, This can make comparisons between genera less reliable. It can also let well-sampled species dominate their genus. We will check sample sizes per genus and species before running our analyses and keep this in mind when interpreting the results.\
 - **Flightless-bird reinterpretation:** traits designed around flight biomechanics in AVONET (wing length, Kipp's distance, hand-wing index) describe flipper shape and diving/swimming propulsion in penguins rather than aerial flight, which is worth stating explicitly in your writeup rather than importing typical "flight efficiency" framing.\
-- **Taxonomic backbone:** built on the BirdLife taxonomy specifically (Species1_BirdLife), so species names should be cross-checked if bring in outside phylogenetic or IUCN data using a different taxonomy (e.g., eBird/Clements or BirdTree).\    
+- **Taxonomic backbone:** built on the BirdLife taxonomy specifically (Species1_BirdLife), so species names should be cross-checked if bring in outside phylogenetic or IUCN data using a different taxonomy (e.g., eBird/Clements or BirdTree). 
 
 ## Questions
 
-To understand penguin morphology varies across genera, we will focus on two features: beak shape and the hand-wing index. Our goal is to see if these groups have maintained distinct physical traits, or if the evolutionary pressures of a shared aquatic lifestyle have driven them toward convergent traits.  
+To understand penguin morphology varies across genera, we will focus on two features: beak shape and the hand-wing index. Our goal is to see if these groups have maintained distinct physical traits, or if the evolutionary pressures of a shared aquatic lifestyle have driven them toward convergent traits.
 
-**Question 1:** Based on beak measurements, do penguins of the same genus naturally group themselves into distinct shapes? Furthermore, which specific part of the beak changes the most to differentiate these groups?  
+**Question 1:** Based on beak measurements, do penguins of the same genus naturally group themselves into distinct shapes? Furthermore, which specific part of the beak changes the most to differentiate these groups?
 
-**Question 2:** Since penguins cannot fly and use their wings as rigid flippers for swimming, does the hand-wing index (which normally measures flight efficiency in other birds) still vary among different penguin genera, or has it settled down to a uniform baseline value across all species?   
+**Question 2:** Since penguins cannot fly and use their wings as rigid flippers for swimming, does the hand-wing index (which normally measures flight efficiency in other birds) still vary among different penguin genera, or has it settled down to a uniform baseline value across all species?
 
 ## Analysis plan
 
-In both questions, each individual penguin will be a data point.   
+In both questions, each individual penguin will be a data point.
 
 ### Question 1
 
 **Introduction for question 1**
 
-We can explore if penguins from the same genus have similar beak shapes that set them apart from other genera by using the four different beak measurements. The dataset includes beak length (using two different measures), beak width, and beak depth. Together, they give a good picture of overall beak shape. Moreover, since beak shape is closely related to diet and how an animal feeds, looking at these differences across genera may suggest how each group has adapted to find food in the ocean.   
+We can explore if penguins from the same genus have similar beak shapes that set them apart from other genera by using the four different beak measurements. The dataset includes beak length (using two different measures), beak width, and beak depth. Together, they give a good picture of overall beak shape. Moreover, since beak shape is closely related to diet and how an animal feeds, looking at these differences across genera may suggest how each group has adapted to find food in the ocean.
 
 **Approach for question 1**
 
-We will use Principal Component Analysis (PCA)^1^ on the four beak measurements: beak.length_culmen, beak.length_nares, beak.width, and beak.depth. Before running the PCA, we will explore and visualize missing values and evaluate possible imputation methods. We will also log-transform the data to address allometry^2^ (Grazier, 2021), and scale the data so that no single measurement has too much weight. We will identify what each PC is explaining by exploring the loadings. This will also show which beak measurement contributes most to separating the genera. We will plot each pair of the first three PCs as biplots, which show the penguins as points (scores) and the beak measurements as arrows (loadings) on the same plot. We will  color each score by genus to see if penguins from the same genus group together.    
+We will use Principal Component Analysis (PCA)^1^ on the four beak measurements: beak.length_culmen, beak.length_nares, beak.width, and beak.depth. Before running the PCA, we will explore and visualize missing values and evaluate possible imputation methods. We will also log-transform the data to address allometry^2^ (Grazier, 2021), and scale the data so that no single measurement has too much weight. We will identify what each PC is explaining by exploring the loadings. This will also show which beak measurement contributes most to separating the genera. We will plot each pair of the first three PCs as biplots, which show the penguins as points (scores) and the beak measurements as arrows (loadings) on the same plot. We will color each score by genus to see if penguins from the same genus group together.
 
-We will also run the PCA on size-corrected data, using the residuals from regressing each beak measurement on tarsus length length (as a proxy for body size). This will show us whether the genera still separate once size is removed, or if the differences are mostly due to size. We will also check whether the results change with and without the log transformation. While PCA provides useful exploratory visualization of variance it lacks a formal test for group separation. To statistically validate the distinctness we will employ LDA or PERMANOVA.   
+We will also run the PCA on size-corrected data, using the residuals from regressing each beak measurement on tarsus length length (as a proxy for body size). This will show us whether the genera still separate once size is removed, or if the differences are mostly due to size. We will also check whether the results change with and without the log transformation. While PCA provides useful exploratory visualization of variance it lacks a formal test for group separation. To statistically validate the distinctness we will employ LDA or PERMANOVA.
 
 ::: {style="font-size: 0.9em;"}
-(1) PCA is a method that combines several related measurements into a few new axes, called principal components (PCs), which capture most of the variation in the data. This allows us to summarize the four measurements in two-dimensional plots.    
- 
-(2) Allometry refers to the way body parts change in proportion to overall body size; for example, larger penguins tend to have larger beaks.      
-:::  
+(1) PCA is a method that combines several related measurements into a few new axes, called principal components (PCs), which capture most of the variation in the data. This allows us to summarize the four measurements in two-dimensional plots.
 
+(2) Allometry refers to the way body parts change in proportion to overall body size; for example, larger penguins tend to have larger beaks.\
+:::
 
 ### Question 2
 
 **Introduction for question 2**
 
-Since we are given data relating to multiple penguin genera' hand-wing index, it will be fun to see if the different genera share a uniform baseline or if there is still variation. This dataset is perfect for answering this question, as we are given a hand-wing index for species in all six genera. This question is also biologically relevant. It explores how a trait normally linked to flight varies in birds that use their wings for swimming instead.  
+Since we are given data relating to multiple penguin genera' hand-wing index, it will be fun to see if the different genera share a uniform baseline or if there is still variation. This dataset is perfect for answering this question, as we are given a hand-wing index for species in all six genera. This question is also biologically relevant. It explores how a trait normally linked to flight varies in birds that use their wings for swimming instead.
 
-**Approach for question 2**
-To answer question 2, we will first calculate summary statistics (mean , standard deviation and median) of the hand-wind index per genus. We will plot the hand-wing index using boxplots with genus on the x-axis, showing individual penguins as jittered points and the sample size (n) for each genus. This will allow us to compare the distribution across genera, comparing the central value and dispersion of the data. To test if there are statistically significant differences between genera, we will use ANOVA or Kruskal-Wallis if the data are not normally distributed, with a significance level of \alpha = 0.05. If we find differences between genera, we will conduct pairwise comparisons (Tukey's HSD), adjusting for multiple comparisons, to see which genera differ from each other. Because a non-significant result may simply reflect lack oof power due to small sample sizes, we will also report effect sizes and 95% confidence intervals for each genus mean. Rather than using a strict cutoff, we will make a qualitative judgment: we will consider the hand-wing index similar across genera only if the effect size is small, the confidence intervals overlap substantially, and the boxplots show similar distributions. Finally, we will do some exploratory data analysis to look for reasons why genera may still vary, such as body size (using tarsus length as a proxy). Because the sample size is small, we will not include sex in the analysis, but we will check the sex ratio within each genus to see whether sex could be influencing the differences between genera.   
+**Approach for question 2** To answer question 2, we will first calculate summary statistics (mean , standard deviation and median) of the hand-wind index per genus. We will plot the hand-wing index using boxplots with genus on the x-axis, showing individual penguins as jittered points and the sample size (n) for each genus. This will allow us to compare the distribution across genera, comparing the central value and dispersion of the data. To test if there are statistically significant differences between genera, we will use ANOVA or Kruskal-Wallis if the data are not normally distributed, with a significance level of \alpha = 0.05. If we find differences between genera, we will conduct pairwise comparisons (Tukey's HSD), adjusting for multiple comparisons, to see which genera differ from each other. Because a non-significant result may simply reflect lack oof power due to small sample sizes, we will also report effect sizes and 95% confidence intervals for each genus mean. Rather than using a strict cutoff, we will make a qualitative judgment: we will consider the hand-wing index similar across genera only if the effect size is small, the confidence intervals overlap substantially, and the boxplots show similar distributions. Finally, we will do some exploratory data analysis to look for reasons why genera may still vary, such as body size (using tarsus length as a proxy). Because the sample size is small, we will not include sex in the analysis, but we will check the sex ratio within each genus to see whether sex could be influencing the differences between genera.
 
 ## Discussion
 
-For question 1, we expect penguins to group at least partially by genus based on beak shape, with genera with larger bodies being separated primarily by size. Once size is removed, we expect some differences in beak shape to remain between genera. In regards to question 2, the assumed outcome is that there still will be slight differences in hand-wing index across different penguin genera. It will be interesting to explore why this is the case, but that is the assumed outcome. One potential issue is that the dataset does not include environmental or ecological variables, such as diet or habitat, or body mass. These variables are not needed to test whether genera differ, but without them we can only describe the differences, not fully explain them. If time permits, we will explore the ecological variables available in the full AVONET database.   
+For question 1, we expect penguins to group at least partially by genus based on beak shape, with genera with larger bodies being separated primarily by size. Once size is removed, we expect some differences in beak shape to remain between genera. In regards to question 2, the assumed outcome is that there still will be slight differences in hand-wing index across different penguin genera. It will be interesting to explore why this is the case, but that is the assumed outcome. One potential issue is that the dataset does not include environmental or ecological variables, such as diet or habitat, or body mass. These variables are not needed to test whether genera differ, but without them we can only describe the differences, not fully explain them. If time permits, we will explore the ecological variables available in the full AVONET database.
 
 ## Timeline
 
 | Week | Dates | Tasks | Lead |
-|----------------|----------------|------------------------|----------------|
+|-----------------|-----------------|----------------------|-----------------|
 | 1 | Sep 27 – Oct 3 | Address revisions of the proposal | All |
 |  |  | Load data; check sample sizes, sex ratio, and overall missingness; set up the slide template | Stephanie |
 |  |  | Missing values and exploratory plots for the beak measurements | Maria |
@@ -157,10 +156,8 @@ For question 1, we expect penguins to group at least partially by genus based on
 
 ## References
 
-Glazier, D. S. (2021). Biological scaling analyses are more than statistical line fitting. *Journal of Experimental Biology*, *224*(11).<https://doi.org/10.1242/jeb.241059> \    
+Glazier, D. S. (2021). Biological scaling analyses are more than statistical line fitting. *Journal of Experimental Biology*, *224*(11).<https://doi.org/10.1242/jeb.241059>  
 
-Sheard, C., Neate-Clegg, M. H. C., Alioravainen, N., Jones, S. E. I., Vincent, C., MacGregor, H. E. A., Bregman, T. P., Claramunt, S., & Tobias, J. A. (2020). Ecological drivers of global gradients in avian dispersal inferred from wing morphology. Nature Communications, 11(1). <https://doi.org/10.1038/s41467-020-16313-6> \
+Sheard, C., Neate-Clegg, M. H. C., Alioravainen, N., Jones, S. E. I., Vincent, C., MacGregor, H. E. A., Bregman, T. P., Claramunt, S., & Tobias, J. A. (2020). Ecological drivers of global gradients in avian dispersal inferred from wing morphology. Nature Communications, 11(1). <https://doi.org/10.1038/s41467-020-16313-6>\
 
-Tobias, J. A., Sheard, C., Pigot, A. L., Devenish, A. J. M., Yang, J., Sayol, F., Neate-Clegg, M. H. C., Alioravainen, N., Weeks, T. L., Barber, R. A., Walkden, P. A., MacGregor, H. E. A., Jones, S. E. I., Vincent, C., Phillips, A. G., Marples, N. M., Montaño-Centellas, F. A., Leandro-Silva, V., Claramunt, S., ... Biggs, R. (2022). AVONET: morphological, ecological and geographical data for all birds. *Ecology Letters*, *25*(3), 581–597. <https://doi.org/10.1111/ele.13898> \
-
-
+Tobias, J. A., Sheard, C., Pigot, A. L., Devenish, A. J. M., Yang, J., Sayol, F., Neate-Clegg, M. H. C., Alioravainen, N., Weeks, T. L., Barber, R. A., Walkden, P. A., MacGregor, H. E. A., Jones, S. E. I., Vincent, C., Phillips, A. G., Marples, N. M., Montaño-Centellas, F. A., Leandro-Silva, V., Claramunt, S., ... Biggs, R. (2022). AVONET: morphological, ecological and geographical data for all birds. *Ecology Letters*, *25*(3), 581–597. <https://doi.org/10.1111/ele.13898>\
