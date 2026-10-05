@@ -1,7 +1,7 @@
 ---
-title: "Project title"
-subtitle: "INFO 526 - Project 1"
-author: "Team name"
+title: "Beaks and Flippers"
+subtitle: "INFO 526 - Project 1: How Beak Shape and Wing Structure Vary Across Penguin Genera"
+author: "Beaky Blinders"
 format: html
 editor: visual
 ---
