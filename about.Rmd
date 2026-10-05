@@ -1,6 +1,6 @@
 ---
-title: "Beaky Blinders"
-author: "Andrew, Maria, Stephanie"
+title: "Beaks and Flippers: How Beak Shape and Wing Structure Vary Across Penguin Genera"
+author: "Andrew, Maria, Stephanie (Beaky Blinders)"
 date: "2026-09-22"
 output: html_document
 ---
