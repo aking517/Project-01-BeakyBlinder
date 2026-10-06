@@ -1,7 +1,7 @@
 ---
 title: "Beaks and Flippers"
 subtitle: "How Beak Shape and Wing Structure Vary Across Penguin Genera"
-author: "Beaky Blinders: Andrew King, Maria Sans-Fuentes, Stephanie Wu"
+authors: "Beaky Blinders: Andrew King, Maria Sans-Fuentes, Stephanie Wu"
 format: html
 execute:
   echo: false
@@ -168,8 +168,8 @@ kable(summ_pca_var_nonsize, digits = 2,
       (PCA on log-transformed beak measurements, not size-corrected)") %>%
     kable_styling()
 ```
-We observed that, together, PC1 and PC2 explained the `r round(summ_pca_var_nonsize[3,2]*100, 2)`% of the total varation (PC1: `r round(summ_pca_var_nonsize[2,1]*100, 2)`%; PC2: `r round(summ_pca_var_nonsize[2,2]*100, 2)`%). PC3 explained the remaining: `r round(summ_pca_var_nonsize[2,3]*100, 3)`% (@tbl-pca-variance).  
 
+We observed that, together, PC1 and PC2 explained the `r round(summ_pca_var_nonsize[3,2]*100, 2)`% of the total varation (PC1: `r round(summ_pca_var_nonsize[2,1]*100, 2)`%; PC2: `r round(summ_pca_var_nonsize[2,2]*100, 2)`%). PC3 explained the remaining: `r round(summ_pca_var_nonsize[2,3]*100, 3)`% (@tbl-pca-variance).
 
 ```{r tbl-q1-pca-loadings}
 # Table of loadings in each PC 
@@ -181,10 +181,7 @@ kable(loadings_tbl , digits = 2,
     kable_styling()
 ```
 
-
-
-
-The loadings show that each principal component mainly reflects a different dimension of the beak (@tbl-q1-pca-loadings). PC1 is dominated by beak width (`r round(loadings_tbl["Beak width", "PC1"], 2)`) and beak depth (`r round(loadings_tbl["Beak depth", "PC1"], 2)`), with a small contribution from culmen length, so it mainly represents how wide and deep (thick) the beak is. PC2 is almost entirely determined by culmen length (`r round(loadings_tbl["Culmen length", "PC2"], 2)`) and therefore represents beak length. PC3 contrasts beak width and depth, which load with opposite signs, separating beaks that are deep relative to their width from beaks that are wide relative to their depth. Because the signs of loadings in a PCA are arbitrary, what matters is which measurements load strongly together and whether they share the same or opposite signs.  
+The loadings show that each principal component mainly reflects a different dimension of the beak (@tbl-q1-pca-loadings). PC1 is dominated by beak width (`r round(loadings_tbl["Beak width", "PC1"], 2)`) and beak depth (`r round(loadings_tbl["Beak depth", "PC1"], 2)`), with a small contribution from culmen length, so it mainly represents how wide and deep (thick) the beak is. PC2 is almost entirely determined by culmen length (`r round(loadings_tbl["Culmen length", "PC2"], 2)`) and therefore represents beak length. PC3 contrasts beak width and depth, which load with opposite signs, separating beaks that are deep relative to their width from beaks that are wide relative to their depth. Because the signs of loadings in a PCA are arbitrary, what matters is which measurements load strongly together and whether they share the same or opposite signs.
 
 ```{r q1-lda}
 # OWNER: Stephanie 
@@ -230,7 +227,8 @@ ggplot(scores, aes(x = PC1, y = PC2)) +
        y = paste0("PC2 (", round(var_pc["PC2"], 1), "% of variance)"),
        colour = "Genus", shape = "Genus") 
 ```
-Some genera form distinct groups in the biplot (@fig-q1-biplot). Aptenodytes separates along the culmen length arrow, indicating longer beaks, while Eudyptula lies opposite the width and depth arrows (narrower, shallower beaks). Eudyptes lies along width and depth arrows direction (wider, deeper beaks). Pygoscelis, Spheniscus and Megadyptes overlap in the centre. Because this PCA was not corrected for size, the extreme positions of the largest (Aptenodytes) and smallest (Eudyptula) penguins may partly reflect body size.  
+
+Some genera form distinct groups in the biplot (@fig-q1-biplot). Aptenodytes separates along the culmen length arrow, indicating longer beaks, while Eudyptula lies opposite the width and depth arrows (narrower, shallower beaks). Eudyptes lies along width and depth arrows direction (wider, deeper beaks). Pygoscelis, Spheniscus and Megadyptes overlap in the centre. Because this PCA was not corrected for size, the extreme positions of the largest (Aptenodytes) and smallest (Eudyptula) penguins may partly reflect body size.
 
 ```{r fig-q1-loadings,  fig.cap="caption for Figure 2"}
 # OWNER: Maria
@@ -245,7 +243,7 @@ Some genera form distinct groups in the biplot (@fig-q1-biplot). Aptenodytes sep
 
 <!-- What PC1 and PC2 represent; whether genera group together; which beak measurement contributes most; what changes after size correction; possible reasons (as interpretations); limitations. -->
 
-Our PCA showed that penguin beak variation is organised along two largely independent dimensions: beak thickness (width and depth, PC1) and beak length (PC2), which together explained `r round(summ_pca_impor_nonsize[3,2]*100, 1)`% of the variation. Although we expected  that PC1 would reflect overall beak size, culmen length contributed little to PC1. This means that penguins with thicker beaks do not necessarily have longer beaks. This suggests that beak length and thickness may have evolved somewhat independently across penguins, possibly in relation to different feeding demands, although our data cannot test this directly. Because we used only three beak measurements, a simple scatterplot of beak length against depth would show a similar pattern, but the PCA confirmed that width and depth vary together while length varies independently.
+Our PCA showed that penguin beak variation is organised along two largely independent dimensions: beak thickness (width and depth, PC1) and beak length (PC2), which together explained `r round(summ_pca_impor_nonsize[3,2]*100, 1)`% of the variation. Although we expected that PC1 would reflect overall beak size, culmen length contributed little to PC1. This means that penguins with thicker beaks do not necessarily have longer beaks. This suggests that beak length and thickness may have evolved somewhat independently across penguins, possibly in relation to different feeding demands, although our data cannot test this directly. Because we used only three beak measurements, a simple scatterplot of beak length against depth would show a similar pattern, but the PCA confirmed that width and depth vary together while length varies independently.
 
 ## Question 2: Does the hand-wing index still vary among penguin genera?
 
@@ -321,23 +319,11 @@ Do genera differ or are they similar (use the plots, test, effect size and confi
 
 Indicate whether and how AI tools were used in this project. For each tool, state its name and what it was used for.
 
-**Maria Sans-Fuentes:** Claude (Anthropic) was used to help choose a colour-blind-friendly palette for our figures. It recommended the Okabe-Ito palette (built into R as `palette.colors(palette = "Okabe-Ito")`), one color per genus.
-Debugging the following error:
- summ_pca_non.size <- summary(pca_orig)
-> summ_pca_non.size 
-Importance of components:
-                          PC1    PC2    PC3
-Standard deviation     1.2711 0.9933 0.6305
-Proportion of Variance 0.5386 0.3289 0.1325
-Cumulative Proportion  0.5386 0.8675 1.0000
-> kable(summ_pca_non.size, caption = "Variance explained by each principal component (PCA on log-transformed beak measurements")
-Error in as.data.frame.default(x) : 
-  cannot coerce class ‘"summary.prcomp"’ to a data.frame
+**Maria Sans-Fuentes:** Claude (Anthropic) was used to:
 
-Answer of Claude: 
-kable() can't print a PCA summary object directly, but the table you want is stored inside it, in $importance:
-kable(summ_pca_non.size$importance, digits = 2,
-      caption = "Variance explained by each principal component (PCA on log-transformed beak measurements)")
+- choose a colour-blind-friendly palette for our figures (it recommended the Okabe-Ito palette, one colour per genus, with a different point shape per genus as a second cue);
+- debug R code, for example how to print the variance explained from a PCA summary with `kable()` (using `summary(pca)$importance`) and why missing colour values removed all points from a ggplot;
+
 
 **Andrew King:** (state tool and use, or "No AI tools were used.")
 
