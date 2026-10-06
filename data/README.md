@@ -11,11 +11,27 @@ and examine whether these genera remain physically distinct despite sharing an a
 lifestyle. 
 
 # Codebook for [Many Penguins] Dataset
-- Description: This is the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 
+-   **Description**: This is the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 
 (week 28), curated by Ben Bolker of McMaster University. It was created as a richer 
 alternative to the Palmer Penguins dataset that includes only 3 species. Many Penguins 
 dataset contains the penguins (Spheniscidae) records from the much larger AVONET database 
 and includes 18 species. 
+
+-   **Provenance/Sources**:
+  - Source: AVONET — Tobias, J.A., Sheard, C., Pigot, A.L., et al. (2022). "AVONET: morphological, 
+  ecological and geographical data for all birds." Ecology Letters, 25(3), 581–597. DOI: 10.1111/ele.13898. 
+  The full AVONET database covers 90,020 individual birds across 11,009 species from 181 countries, 
+  with 11 continuous morphological traits and 6 ecological variables: opentraits.org/datasets/avonet.html.
+  - Filtering step: Bolker's cleaning script pulled the raw AVONET measurement file (AVONET_Raw_Data.csv) 
+  and cross-referenced it against AVONET's species list, filtering to just Family.name == "Spheniscidae" 
+  (penguins), using the BirdLife taxonomic backbone (Species1_BirdLife). 
+  - This dataset: github.com/rfordatascience/tidytuesday, data/2026/2026-07-14, file many_penguins.csv, 
+  downloadable directly at: 
+  https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-07-14/many_penguins.csv 
+
+-   **Dimensions**:
+93 rows (individual penguin specimens) × 14 columns — 4 categorical/identifier columns (species, genus, 
+shortname, sex) and 10 continuous morphometric measurement columns, spanning 18 species across 6 genera.
 
 ## Variable Names and Descriptions:
 
