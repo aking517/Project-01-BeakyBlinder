@@ -61,3 +61,17 @@ Source:
 Morphometric measurements are reported in millimeters (mm).
 
 The `hand-wing.index` variable is a calculated index rather than a direct measurement. It represents Kipp's distance corrected for wing size.
+
+## Concerns and Additional Information:
+
+- **Missing data:** the readme explicitly notes up to 12% of some measurement types are missing, which is worth checking missingness patterns per variable/species before modeling, and considering how to handle it (imputation, complete-case analysis, models tolerant of missingness).
+
+- **Age was dropped:** the cleaning script excluded an Age column because it was uninformative (0 for all but one bird).
+
+- `hand-wing.index` **caveat:** the readme flags that species-average HWI values here differ from published estimates in Sheard et al. (2020), due to differing sampling intensity across species and taxonomic effects tied to the BirdLife species list used.
+
+- **Uneven sampling:** 93 individuals across 18 species is not an even \~5 per species, in which some genera/species will have far fewer individuals, This can make comparisons between genera less reliable. It can also let well-sampled species dominate their genus. We will check sample sizes per genus and species before running our analyses and keep this in mind when interpreting the results.  
+
+- **Flightless-bird reinterpretation:** traits designed around flight biomechanics in AVONET (wing length, Kipp's distance, hand-wing index) describe flipper shape and diving/swimming propulsion in penguins rather than aerial flight, which is worth stating explicitly in your writeup rather than importing typical "flight efficiency" framing.
+
+- **Taxonomic backbone:** built on the BirdLife taxonomy specifically (Species1_BirdLife), so species names should be cross-checked if bring in outside phylogenetic or IUCN data using a different taxonomy (e.g., eBird/Clements or BirdTree).
