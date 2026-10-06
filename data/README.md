@@ -1,43 +1,42 @@
-##  Data: Many Penguins Dataset
--   **Dataset Overview:** This "Many Penguins" dataset, derived from the global AVONET 
-database (Tobias et al., 2022), allow us to explore an evolutionary question: do closely 
-related groups that share a similar lifestyle develop similar physical characteristics? 
-The dataset contains 10 distinct morphmetric measurements, or physical body measurements, 
-collected from 93 penguins representing 18 species across 6 genera. Because the dataset 
-is cross-sectional, it provides a snapshot of present-day penguin species rather than
-documenting how their physical characteristics have changed over time. 
+---
 
-Our goal is to describe and compare differences in beak shape and wing structure across
-penguin genera and examine whether these genera remain physically distinct despite sharing 
-an aquatic lifestyle. 
+editor_options: 
+  markdown: 
+    wrap: 72
+---
 
-##  Codebook for Many Penguins Dataset
--   **Description**: This is the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 
-(week 28), curated by Ben Bolker of McMaster University. It was created as a richer 
-alternative to the Palmer Penguins dataset that includes only 3 species. Many Penguins 
-dataset contains the penguins (Spheniscidae) records from the much larger AVONET database 
-and includes 18 species. 
+# "Many Penguins" Dataset Metadata
 
--   **Provenance/Sources:**
-    - **Source**: AVONET — Tobias, J.A., Sheard, C., Pigot, A.L., et al. (2022). "AVONET: morphological, 
-    ecological and geographical data for all birds." Ecology Letters, 25(3), 581–597. DOI: [10.1111/ele.13898]. 
-    The full AVONET database covers 90,020 individual birds across 11,009 species from 181 countries, 
-    with 11 continuous morphological traits and 6 ecological variables: <https://opentraits.org/datasets/avonet.html>
-    - **Filtering step**: Bolker's cleaning script pulled the raw AVONET measurement file (AVONET_Raw_Data.csv) 
-    and cross-referenced it against AVONET's species list, filtering to just Family.name == "Spheniscidae" 
-    (penguins), using the BirdLife taxonomic backbone (Species1_BirdLife).
-    - **This dataset**: [TidyTuesday GitHub repository] <https://github.com/rfordatascience/tidytuesday>, file many_penguins.csv, 
-    downloadable directly at: <https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-07-14/many_penguins.csv>
-    
--   **Dimensions:**
-93 rows (individual penguin specimens) × 14 columns — 4 categorical/identifier columns (species, genus, 
-shortname, sex) and 10 continuous morphometric measurement columns, spanning 18 species across 6 genera.
+## Overview:
 
-##  Variable Names, Classes and Descriptions:
+The Many Penguins dataset contains morphometric measurements from 93 penguins representing 18 species across 6 genera. The dataset includes measurements of physical characteristics such as beak dimensions, wing length, tarsus length, and tail length.
+
+Each row represents an individual penguin, and each column represents a taxonomic characteristic, demographic attribute, or morphometric measurement.
+
+## Provenance/Sources:
+
+The dataset is derived from the global AVONET database described by Tobias et al. (2022). The version of the dataset used in this project was obtained through the TidyTuesday repository for July 14, 2026.
+
+Source:
+
+- Original data source: AVONET — Tobias, J.A., Sheard, C., Pigot, A.L., et al. (2022). "AVONET: morphological, ecological and geographical data for all birds." Ecology Letters, 25(3), 581–597. DOI: [10.1111/ele.13898].
+
+  - The full AVONET database covers 90,020 individual birds across 11,009 species from 181 countries, with 11 continuous morphological traits and 6 ecological variables: <https://opentraits.org/datasets/avonet.html>
+
+- TidyTuesday GitHub repository: <https://github.com/rfordatascience/tidytuesday>
+
+- Specific dataset: TidyTuesday July 14, 2026 data: <https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-07-14/many_penguins.csv>
+
+## Codebook:
+
+- **Filtering step**: Bolker's cleaning script pulled the raw AVONET measurement file (AVONET_Raw_Data.csv) and cross-referenced it against AVONET's species list, filtering to just Family.name == "Spheniscidae" (penguins), using the BirdLife taxonomic backbone (Species1_BirdLife).
+- **Dimensions:** 93 rows (individual penguin specimens) × 14 columns — 4 categorical/identifier columns (species, genus, shortname, sex) and 10 continuous morphometric measurement columns, spanning 18 species across 6 genera.
+
+### Variable Names, Classes and Descriptions:
 
 | Variable | Class | Description |
-|:---------|:----:|-------------|
-|`species`| `factor` | Penguin species name. |
+|:-----------------------|:---------------:|-------------------------------|
+| `species` | `factor` | Penguin species name. |
 | `genus` | `factor` | Penguin genus name. |
 | `shortname` | `factor` | Abbreviated species name. |
 | `sex` | `factor` | Sex of the individual sampled: M = Male; F = Female; U = Unknown. |
@@ -52,9 +51,13 @@ shortname, sex) and 10 continuous morphometric measurement columns, spanning 18 
 | `hand-wing.index` | `double` | 100 × DK/Lw, where DK is Kipp's distance and Lw is wing length (i.e., Kipp's distance corrected for wing size). Species average HWI differs from estimates in Sheard et al. (2020) because of much higher sampling of individuals in some species, as well as taxonomic effects in the BirdLife list (mm). |
 | `tail.length` | `double` | Distance between the tip of the longest rectrix and the point at which the two central rectrices protrude from the skin, typically measured using a ruler inserted between the two central rectrices (mm). |
 
-##  Data Types:
+## Data Types:
 
--   **Column**: data type
+- **Factor:** Categorical variable used to represent taxonomic or demographic categories.
+- **Double:** Numeric variable stored as a double-precision value.
 
+## Units and Measurements: 
 
+Morphometric measurements are reported in millimeters (mm).
 
+The `hand-wing.index` variable is a calculated index rather than a direct measurement. It represents Kipp's distance corrected for wing size.
