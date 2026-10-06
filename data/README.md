@@ -1,8 +1,9 @@
 ---
-
-editor_options: 
-  markdown: 
-    wrap: 72
+title: "Beaks and Flippers"
+subtitle: "How Beak Shape and Wing Structure Vary Across Penguin Genera"
+editor: visual
+team_name: "Beaky Blinders"
+authors: Andrew King, Maria Sans-Fuentes, Stephanie Wu
 ---
 
 # "Many Penguins" Dataset Metadata
