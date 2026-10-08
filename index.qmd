@@ -1,0 +1,407 @@
+---
+title: "Beaks and Flippers"
+subtitle: "How Beak Shape and Wing Structure Vary Across Penguin Genera"
+authors: "Beaky Blinders: Andrew King, Maria Sans-Fuentes, Stephanie Wu"
+format: html
+execute:
+  echo: false
+  warning: false
+  message: false
+editor: visual
+---
+
+```{r setup}
+# OWNER: All
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+# Color-blind-friendly palette (adapted from Paul Tol), one color per genus
+genus_cols <- c(
+  "Aptenodytes" = "#2299CC",  # medium blue
+  "Eudyptes"    = "#AA3377",  # purple
+  "Eudyptula"   = "#CCBB44",  # yellow
+  "Megadyptes"  = "#228833",  # green
+  "Pygoscelis"  = "#004488",  # dark navy
+  "Spheniscus"  = "#EE6677"   # red/pink
+) 
+
+# Define symbols by genus, to support Colour-blind-friendly choices.  
+genus_shapes <- c(
+  "Aptenodytes" = 16,  # Filled circle
+  "Eudyptes" = 17,     # Filled triangle 
+  "Eudyptula" = 15,    # Filled square 
+  "Megadyptes"  = 18,  # Filled diamond 
+  "Pygoscelis" = 3,    # Plus sign (+)
+  "Spheniscus" = 8     # Asterisk
+)
+
+# Define size for each shape
+genus_sizes <- c(Aptenodytes = 2.5, Eudyptes = 2.5, Eudyptula = 2.5,
+                 Megadyptes = 3.5, Pygoscelis = 2.5, Spheniscus = 2.5)
+```
+
+```{r load-data, warning=F, message=F}
+# OWNER: Stephanie
+# Load data
+penguins <- read_csv("data/many_penguins.csv")
+
+# rename `hand-wing.index` to hwi
+
+# make genus, species and sex factors
+penguins <- penguins %>%
+    mutate(genus=factor(genus))       # genus as factor
+
+```
+
+## Introduction
+
+<!-- OWNER: Stephanie (1-2 paragraphs) -->
+
+Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset.
+
+```{r  data-overview}
+# OWNER: Stephanie
+# table: number of penguins and species per genus (sample sizes)
+# table: number of F, M and U per genus (sex ratio)
+# % missing per variable 
+
+# Variables used in the analyses
+analysis_vars <- c("beak.length_culmen", "beak.length_nares", "beak.width",
+                   "beak.depth", "tarsus.length", "hand-wing.index")
+
+# Missing values in the beak measurements, by genus
+missing_by_genus <- penguins %>%
+  group_by(genus) %>%
+  summarise(penguins = n(),
+            # sum NAs per measurement variable
+            across(all_of(analysis_vars), ~ sum(is.na(.x))),
+            # sum all the unknown sex values
+            sex_unknown = sum(sex == "U"))      
+```
+
+```{r tbl-missing}
+# OWNER: Stephanie 
+kable(missing_by_genus, caption= "Number of missing values in the variables used
+      in our analyses, by genus",
+      col.names = c("Genus", "Penguins", "Culmen length", "Nares length",
+                    "Beak width", "Beak depth", "Tarsus length", 
+                    "Hand-wing index", "Unknown sex")) %>%
+    kable_styling()
+```
+
+## Question 1: Do penguin genera differ in beak shape?
+
+### Introduction
+
+<!-- OWNER: Maria (1-2 paragraphs) -->
+
+(1-2 paragraphs): Introduction to the question and what parts of the dataset are necessary to answer the question. Also discuss why you’re interested in this question.
+
+### Approach
+
+<!-- OWNER: Maria (1-2 paragraphs) -->
+
+(1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets.
+
+- Figure 1: bar chart of PCA loadings, to show which beak measurement contributes most to each PC.
+- Figure 2: PCA biplot (scatterplot of PC scores, coloured by genus, with loading arrows), faceted into original and size-corrected PCA.
+
+
+Also to mention: log-transform and scale; complete cases or imputation; size correction using residuals on tarsus length.
+
+### Analysis
+
+<!-- In this section, provide the code that generates your plots. Use scale functions to provide nice axis labels and guides. You are welcome to use theme functions to customize the appearance of your plot, but you are not required to do so. All plots must be made with {ggplot2}. Do not use base R or lattice plotting functions. -->
+
+```{r q1-prepare}
+# OWNER: Maria
+# Numbers for inline code in the Approach
+r_nares         <- cor(penguins$beak.length_culmen, penguins$beak.length_nares,
+                       use = "complete.obs")
+n_nares_missing <- sum(is.na(penguins$beak.length_nares))
+n_depth_missing <- sum(is.na(penguins$beak.depth))
+# Missing nares lengths and sample size for the two most affected genera
+eudyptula <- missing_by_genus %>% filter(genus == "Eudyptula")
+pygoscelis <- missing_by_genus %>% filter(genus == "Pygoscelis")
+
+# keep penguins with all 3 beak measurements 
+# Vector with the variable names of the four beak measurements 
+pca_vars <- c("beak.length_culmen","beak.width", "beak.depth")
+
+# Data frame for analyses: completecases and log transformation 
+pca_dta <- penguins %>%
+    # select variables for PCA analysis
+    select(all_of(pca_vars), genus) %>%
+    # just keep coplete cases
+    filter(complete.cases(.)) %>%
+    # log-transform the three beak measurements
+    mutate(across(all_of(pca_vars), log, .names = "log_{.col}"))
+
+# Vector with the log transformed variable names
+pca_vars_log <- c("log_beak.length_culmen","log_beak.width", "log_beak.depth")
+```
+
+Before running the PCA, we explored missing values in the four beak measurements (@tbl-missing). While culmen length and beak width were complete, beak depth was missing for `r n_depth_missing` penguin, and nares length was missing for `r n_nares_missing` penguins, with the highest proportions in *Eudyptula* (`r eudyptula$beak.length_nares` of `r eudyptula$penguins`) and *Pygoscelis* (`r pygoscelis$beak.length_nares` of `r pygoscelis$penguins`). Because nares length was strongly correlated with culmen length (r = `r round(r_nares, 2)`), which also measures beak length, we excluded this measure to avoid losing these penguins. We considered imputing their values, but imputation would add little new information and could make genera appear more distinct than they are. Therefore, we ran the PCA on culmen length, beak width and beak depth, using only penguins with all three measurements (complete cases, n = `r nrow(pca_dta)`).
+
+```{r q1-pca}
+# OWNER: Maria (original PCA)
+# PCA o the log transformed 3 measurements variables (not size-corrected)
+pca_orig <- prcomp(pca_dta[,pca_vars_log], scale=T) 
+
+# Percentage of variance explained by each PC
+var_pc <- summary(pca_orig)$importance["Proportion of Variance", ] * 100
+
+# Summary of the explained variance per component
+summ_pca_var_nonsize <- summary(pca_orig)$importance
+
+# Loadings of the PCs
+summ_pca_load_nonsize <- pca_orig$rotation
+
+# OWNER: Stephanie (size-corrected PCA)
+# residuals of each log beak measurement on log(tarsus_length)
+# 1. Log-transform the beak measurements and tarsus length.
+# 2. Regress each log beak measurement on log tarsus length.
+# 3. Take the residuals: what's left of each beak measurement after removing 
+# the part explained by body size.
+# Run the PCA on the residuals.
+```
+
+```{r tbl-q1-pca-variance}
+# Table of variance explained by each PC 
+kable(summ_pca_var_nonsize, digits = 2,
+      caption = "Variance explained by each principal component 
+      (PCA on log-transformed beak measurements, not size-corrected)") %>%
+    kable_styling()
+```
+
+We observed that, together, PC1 and PC2 explained the `r round(summ_pca_var_nonsize[3,2]*100, 2)`% of the total varation (PC1: `r round(summ_pca_var_nonsize[2,1]*100, 2)`%; PC2: `r round(summ_pca_var_nonsize[2,2]*100, 2)`%). PC3 explained the remaining: `r round(summ_pca_var_nonsize[2,3]*100, 3)`% (@tbl-q1-pca-variance).
+
+
+```{r fig-q1-loadings}
+#| fig-cap: "Loadings of the three log-transformed and scaled beak measurements on each principal component. Longer bars mean the measurement contributes more to that PC; dark bars mark the main contributors (|loading| ≥ 0.5). The sign of a loading is arbitrary; what matters is which measurements load strongly together."
+#| fig-height: 3
+#| fig-width: 8
+# OWNER: Maria
+
+# Figure 1: bar chart of the PCA loadings
+# Loadings of PC1 and PC2 in long format (one row per measurement and PC)
+loadings_long <- as.data.frame(pca_orig$rotation[, c("PC1", "PC2", "PC3")]) %>%
+    rownames_to_column("measurement") %>%
+    mutate(measurement = c("Culmen length", "Beak width", "Beak depth")) %>%
+    pivot_longer(c(PC1, PC2, PC3), names_to = "PC", values_to = "loading") %>%
+    mutate(PC = paste0(PC, " (", round(var_pc[PC], 1), "%)"))
+
+# Bars of loadings: measurement on the y-axis, loading on the x-axis
+ggplot(loadings_long, aes(x = loading, y = measurement)) +
+    # Grey vertical line at zero to separate positive and negative loadings
+    geom_vline(xintercept = 0, colour = "grey50", linewidth = 0.4) +
+    # One bar per measurement, in grey (colour is reserved for genus)
+    geom_col(fill = "grey45", width = 0.6) +
+    # Loading value at the end of each bar
+    geom_text(aes(label = round(loading, 2),
+                  hjust = ifelse(loading < 0, 1.15, -0.15)),
+              size = 3.5, colour = "grey25") +
+    # One panel per PC
+    facet_wrap(~ PC) +
+    # Same range for both panels, with room for the value labels
+    scale_x_continuous(limits = c(-1.1, 1.1), breaks = seq(-1, 1, by = 0.5)) +
+    labs(x = "Loading", y = NULL) +
+    # Clean white theme with readable text size
+    theme_minimal(base_size = 12) +
+    # Light vertical gridlines only; bold panel titles
+    theme(panel.grid.major.y = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.grid.major.x = element_line(colour = "grey93", linewidth = 0.3),
+          strip.text = element_text(face = "bold"))
+```
+
+The loadings show that each principal component mainly reflects a different dimension of the beak (@fig-q1-loadings). PC1 is dominated by beak width (`r round(summ_pca_load_nonsize["log_beak.width", "PC1"], 2)`) and beak depth (`r round(summ_pca_load_nonsize["log_beak.depth", "PC1"], 2)`), with a small contribution from culmen length, so it mainly represents how wide and deep (thick) the beak is. PC2 is almost entirely determined by culmen length (`r round(summ_pca_load_nonsize["log_beak.length_culmen", "PC2"], 2)`) and therefore represents beak length. PC3 contrasts beak width and depth, which load with opposite signs, separating beaks that are deep relative to their width from beaks that are wide relative to their depth. Because the signs of loadings in a PCA are arbitrary, what matters is which measurements load strongly together and whether they share the same or opposite signs.
+
+```{r q1-lda}
+# OWNER: Stephanie 
+# Linear discriminant analysis: how well can genus be predicted from the beak?
+
+# use the same four log beak measurements (predictors) as the PCA, plus genus 
+# (grouping variable to predict)
+# MASS package does lda
+# table of actual vs predicted genus: table(actual, predicted) - no figure?, 
+# we already will have two figures (PCA + loadings)
+# % correct overall and per genus
+```
+
+```{r fig-q1-biplot}
+#| fig-cap: "PCA biplot of beak shape across penguin genera. Each point is one penguin, coloured and shaped by genus. Arrows show the loadings of the three log-transformed and scaled beak measurements. PC1 mainly reflects beak thickness (width and depth) and PC2 beak length (culmen). Percentages show the variance explained by each PC." 
+
+# OWNER: Maria
+# PC1 vs PC2 for not size-corrected measures
+# Scores
+scores <- as.data.frame(pca_orig$x) %>%
+  mutate(genus = pca_dta$genus)
+
+# Loadings (multiplied by 3 so the arrows are visible next to the points)
+arrow_scale <- 4
+arrows <- as.data.frame(pca_orig$rotation, rownames = "measurement") %>%
+  mutate(measurement = c("Culmen length", "Beak width", "Beak depth"),
+         PC1 = PC1*arrow_scale,
+         PC2 = PC2*arrow_scale)
+
+# Figure 2: PCA biplot of beak measurements (not size-corrected)
+# Position of each genus label box
+genus_labels <- data.frame(
+    genus   = c("Eudyptes", "Eudyptula", "Aptenodytes",
+                "Spheniscus", "Pygoscelis", "Megadyptes"),
+    label_x = c(-0.45, 3.85, 2.65, 2.6, 2.05, -0.55),
+    label_y = c(1.8, 1.5, -2.6, 0.35, -0.85, -1.05)
+)
+
+# Base plot PC1 scores on the x-axis, PC2 scores on the y-axis
+ggplot(scores, aes(x = PC1, y = PC2)) +
+    # Grey horizontal line at zero (centre of PC2)
+    geom_hline(yintercept = 0, colour = "grey50", linewidth = 0.4) +
+    # Grey vertical line at zero (centre of PC1)
+    geom_vline(xintercept = 0, colour = "grey50", linewidth = 0.4) +
+    # Penguins as points, coloured, shaped and sized by genus (no transparency)
+    geom_point(aes(colour = genus, shape = genus, size = genus), alpha = 1) +
+    # Arrows from the centre to each beak measurement's loading
+    geom_segment(data = arrows,
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
+                 arrow = arrow(length = unit(2, "mm")),
+                 colour = "grey35", linewidth = 0.6) +
+    # Measurement names just beyond the arrow tips, aligned away from the centre
+    geom_text(data = arrows,
+              aes(x = PC1 * 1.12, y = PC2 * 1.12, label = measurement,
+                  hjust = ifelse(PC1 < 0, 1, 0)),
+              size = 3.5, colour = "grey35") +
+    # Rounded white box with the genus name, leaving space on the right for the symbol
+    geom_label(data = genus_labels,
+               aes(x = label_x, y = label_y,
+                   label = paste0("", genus, "     "), colour = genus),
+               hjust = 1, fontface = "italic", size = 3.6,
+               fill = "white",
+               label.r = unit(0.5, "lines"),
+               label.padding = unit(0.3, "lines")) +
+    # Genus symbol at the right end inside the box
+    geom_point(data = genus_labels,
+               aes(x = label_x - 0.17, y = label_y,
+                   colour = genus, shape = genus, size = genus)) +
+    # Colour-blind-friendly colours per genus (adapted from Paul Tol)
+    scale_colour_manual(values = genus_cols) +
+    # One point shape per genus, as a second cue besides colour
+    scale_shape_manual(values = genus_shapes) +
+    # Point size per genus (Megadyptes diamond drawn larger to match the others)
+    scale_size_manual(values = genus_sizes) +
+    # Extra space on the left so arrow labels are not cut off
+    scale_x_continuous(expand = expansion(mult = c(0.25, 0.08))) +
+    # Tick labels every 2 units, with a little space above and below
+    scale_y_continuous(breaks = seq(-4, 2, by = 2),
+                       expand = expansion(mult = c(0.08, 0.08))) +
+    # Same scale on both axes so distances between penguins are not distorted
+    coord_equal() +
+    # Axis titles with PC meaning and % of variance
+    labs(x = paste0("PC1 (", round(var_pc["PC1"], 1), "%)"),
+         y = paste0("PC2 (", round(var_pc["PC2"], 1), "%)")) +
+    # Clean white theme with readable text size
+    theme_minimal(base_size = 12) +
+    # Light major gridlines as a reading guide; no minor gridlines; no legend
+    theme(panel.grid.major = element_line(colour = "grey93", linewidth = 0.3),
+          panel.grid.minor = element_blank(),
+          legend.position = "none")
+```
+
+Some genera form distinct groups in the biplot (@fig-q1-biplot). Aptenodytes separates along the culmen length arrow, indicating longer beaks, while Eudyptula lies opposite the width and depth arrows (narrower, shallower beaks). Eudyptes lies along width and depth arrows direction (wider, deeper beaks). Pygoscelis, Spheniscus and Megadyptes overlap in the centre. Because this PCA was not corrected for size, the extreme positions of the largest (Aptenodytes) and smallest (Eudyptula) penguins may partly reflect body size.
+
+
+
+### Discussion
+
+<!-- OWNER: Maria and Stephanie (Stephanie: size correction and LDA) -->
+
+<!-- (1-3 paragraphs): In the Discussion section, interpret the results of your analysis. Identify any trends revealed (or not revealed) by the plots.Speculate about why the data looks the way it does. -->
+
+<!-- What PC1 and PC2 represent; whether genera group together; which beak measurement contributes most; what changes after size correction; possible reasons (as interpretations); limitations. -->
+
+Our PCA showed that penguin beak variation is organised along two largely independent dimensions: beak thickness (width and depth, PC1) and beak length (PC2), which together explained `r round(summ_pca_var_nonsize[3,2]*100, 1)`% of the variation. Although we expected that PC1 would reflect overall beak size, culmen length contributed little to PC1. This means that penguins with thicker beaks do not necessarily have longer beaks. This suggests that beak length and thickness may have evolved somewhat independently across penguins, possibly in relation to different feeding demands, although our data cannot test this directly. Because we used only three beak measurements, a simple scatterplot of beak length against depth would show a similar pattern, but the PCA confirmed that width and depth vary together while length varies independently.
+
+## Question 2: Does the hand-wing index still vary among penguin genera?
+
+### Introduction
+
+<!-- OWNER: Andrew (1-2 paragraphs) -->
+
+(1-2 paragraphs): Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset.
+
+### Approach
+
+<!-- OWNER: Andrew (1-2 paragraphs) -->
+
+(1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets.
+
+- Figure 3: boxplot of the hand-wing index by genus, with individual penguins as jittered points coloured by genus and the sample size (n) for each genus.
+- Figure 4: mean hand-wing index per genus with 95% confidence intervals (point-and-interval plot), to judge whether genera are similar.
+
+Also mention what test we chose, ANOVA or Kruskal-Wallis, and the effect size as support.
+
+### Analysis
+
+In this section, provide the code that generates your plots. Use scale functions to provide nice axis labels and guides. You are welcome to use theme functions to customize the appearance of your plot, but you are not required to do so. All plots must be made with {ggplot2}. Do not use base R or lattice plotting functions.
+
+```{r q2-summary}
+# OWNER: Andrew
+# keep penguins with a hand-wing index value
+# summary per genus: n, mean, sd, median, 95% CI of the mean
+```
+
+```{r q2-test}
+# OWNER: Andrew
+# ANOVA or Kruskal-Wallis, and the effect size (eta- or epsilon-squared)
+```
+
+```{r fig-q2-boxplot, fig.cap="caption for Figure 3"}
+# OWNER: Andrew
+# geom_boxplot + geom_jitter, colour and shape = genus, n per genus
+```
+
+```{r fig-q2-ci, fig.cap="caption for Figure 4"}
+# OWNER: Andrew
+# geom_pointrange (mean and 95% CI per genus)
+```
+
+```{r q2-explore}
+# OWNER: Stephanie
+# Exploratory checks for possible reasons why the hand-wing index varies (no figures)
+# 1. body size: Spearman correlation between hwi and tarsus_length
+# 2. components of the index: mean kipps_distance and wing_length per genus
+#    (small table), to see which part drives any differences
+# 3. sex: refer to the sex-ratio table from the Introduction; note any genus
+#    dominated by one sex
+```
+
+### Discussion
+
+<!-- OWNER: Andrew and Stephanie (Stephanie: exploratory checks) -->
+
+(1-3 paragraphs): In the Discussion section, interpret the results of your analysis. Identify any trends revealed (or not revealed) by the plots.Speculate about why the data looks the way it does.
+
+Do genera differ or are they similar (use the plots, test, effect size and confidence intervals)? Possible reasons, e.g., body size (Stephanie can add a sentence on hand-wing index vs tarsus length) and the adaptation of wings into flippers, as interpretations. Limitations: small samples, penguins of the same species are not independent, no environmental variables.
+
+## References
+
+<!-- OWNER: Stephanie -->
+
+<!-- Everybody review the whole document for consistency -->
+
+## AI Disclosure
+
+<!-- OWNER: All. Each member adds how they used AI (if at all). -->
+
+Indicate whether and how AI tools were used in this project. For each tool, state its name and what it was used for.
+
+**Maria Sans-Fuentes:** Claude (Anthropic) was used to:
+
+- choose a colour-blind-friendly palette for our figures (it suggested a palette adapted from Paul Tol's colour schemes, with darkened blues so all colours are clearly visible, one colour per genus, and a different point shape per genus as a second cue);
+- debug R code, for example how to print the variance explained from a PCA summary with `kable()` (using `summary(pca)$importance`) and why missing colour values removed all points from a ggplot;
+
+**Andrew King:** (state tool and use, or "No AI tools were used.")
+
+**Stephanie Wu:** (state tool and use, or "No AI tools were used.")

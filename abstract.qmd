@@ -1,11 +1,11 @@
 ---
-title: "Project title"
-subtitle: "INFO 526 - Project 1"
-author: "Team name"
+title: "INFO 526 - Project 1: Beaks and Flippers"
+subtitle: "How Beak Shape and Wing Structure Vary Across Penguin Genera"
+authors: "Beaky Blinders - Andrew King, Maria Sans-Fuentes, Stephanie Wu"
 format: html
 editor: visual
 ---
 
 ## Abstract
 
-Add project abstract here.
+Penguins provide an opportunity to examine how physical traits vary among closely related groups that share an aquatic lifestyle. Using the Many Penguins dataset, derived from the global AVONET database (Tobias et al., 2022), we analyze 10 morphometric measurements from 93 individuals representing 18 species across 6 genera. We focus on differences in beak shape and wing structure among genera, with particular attention to the hand-wing index (HWI) as a measure of wing shape rather than flight efficiency in penguins. We use exploratory data visualization, including boxplots, and Principal Component Analysis (PCA) to summarize multivariate patterns and compare morphological distributions across groups. We also examine missing-data patterns and account for uneven sample sizes when interpreting group comparisons. Because the dataset is cross-sectional and does not contain environmental or ecological variables, our analysis describes patterns of morphological variation but cannot determine whether those patterns result from adaptation, shared ancestry, or other biological processes. Overall, this project demonstrates how multivariate visualization and exploratory analysis can be used to examine morphological similarities and differences among penguin genera while considering important limitations of biological data.
