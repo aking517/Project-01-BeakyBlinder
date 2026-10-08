@@ -244,6 +244,14 @@ The loadings show that each principal component mainly reflects a different dime
 # use the same four log beak measurements (predictors) as the PCA, plus genus 
 # (grouping variable to predict)
 # MASS package does lda
+
+# Leave-one-out cross-validation (CV = TRUE): each penguin is classified by a
+# model fitted without that penguin, so the accuracy isn't over-optimistic
+lda_cv <- MASS::lda(x = pca_dta[, pca_vars_log],
+                    grouping = droplevels(pca_dta$genus),
+                    CV = TRUE)
+
+
 # table of actual vs predicted genus: table(actual, predicted) - no figure?, 
 # we already will have two figures (PCA + loadings)
 # % correct overall and per genus
