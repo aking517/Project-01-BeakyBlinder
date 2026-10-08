@@ -47,6 +47,8 @@ genus_sizes <- c(Aptenodytes = 2.5, Eudyptes = 2.5, Eudyptula = 2.5,
 penguins <- read_csv("data/many_penguins.csv")
 
 # rename `hand-wing.index` to hwi
+penguins <- penguins |> 
+    rename(hwi = 'hand-wing.index')
 
 # make genus, species and sex factors
 penguins <- penguins %>%
@@ -106,7 +108,6 @@ kable(missing_by_genus, caption= "Number of missing values in the variables used
 
 - Figure 1: bar chart of PCA loadings, to show which beak measurement contributes most to each PC.
 - Figure 2: PCA biplot (scatterplot of PC scores, coloured by genus, with loading arrows), faceted into original and size-corrected PCA.
-
 
 Also to mention: log-transform and scale; complete cases or imputation; size correction using residuals on tarsus length.
 
@@ -176,7 +177,6 @@ kable(summ_pca_var_nonsize, digits = 2,
 ```
 
 We observed that, together, PC1 and PC2 explained the `r round(summ_pca_var_nonsize[3,2]*100, 2)`% of the total varation (PC1: `r round(summ_pca_var_nonsize[2,1]*100, 2)`%; PC2: `r round(summ_pca_var_nonsize[2,2]*100, 2)`%). PC3 explained the remaining: `r round(summ_pca_var_nonsize[2,3]*100, 3)`% (@tbl-q1-pca-variance).
-
 
 ```{r fig-q1-loadings}
 #| fig-cap: "Loadings of the three log-transformed and scaled beak measurements on each principal component. Longer bars mean the measurement contributes more to that PC; dark bars mark the main contributors (|loading| ≥ 0.5). The sign of a loading is arbitrary; what matters is which measurements load strongly together."
@@ -310,8 +310,6 @@ ggplot(scores, aes(x = PC1, y = PC2)) +
 ```
 
 Some genera form distinct groups in the biplot (@fig-q1-biplot). Aptenodytes separates along the culmen length arrow, indicating longer beaks, while Eudyptula lies opposite the width and depth arrows (narrower, shallower beaks). Eudyptes lies along width and depth arrows direction (wider, deeper beaks). Pygoscelis, Spheniscus and Megadyptes overlap in the centre. Because this PCA was not corrected for size, the extreme positions of the largest (Aptenodytes) and smallest (Eudyptula) penguins may partly reflect body size.
-
-
 
 ### Discussion
 
