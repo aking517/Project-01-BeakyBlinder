@@ -28,4 +28,4 @@ The two questions you want to answer.
 
 ## Analysis plan
 
--   A plan for answering each of the questions including the variables involved, variables to be created (if any), external data to be merged in (if any).
+- A plan for answering each of the questions including the variables involved, variables to be created (if any), external data to be merged in (if any).
