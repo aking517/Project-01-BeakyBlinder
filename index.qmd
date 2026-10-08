@@ -69,8 +69,7 @@ Brief introduction to the dataset. You may repeat some of the information about 
 # % missing per variable 
 
 # Variables used in the analyses
-analysis_vars <- c("beak.length_culmen", "beak.length_nares", "beak.width",
-                   "beak.depth", "tarsus.length", "hand-wing.index")
+analysis_vars <- c("beak.length_culmen", "beak.length_nares", "beak.width", "beak.depth", "tarsus.length", "hwi")
 
 # Missing values in the beak measurements, by genus
 missing_by_genus <- penguins %>%
@@ -162,10 +161,30 @@ summ_pca_load_nonsize <- pca_orig$rotation
 # OWNER: Stephanie (size-corrected PCA)
 # residuals of each log beak measurement on log(tarsus_length)
 # 1. Log-transform the beak measurements and tarsus length.
+pca_size_dta <- penguins %>%
+    select(all_of(pca_vars), tarsus.length, genus) %>%
+    filter(complete.cases(.)) %>%
+    mutate(across(all_of(c(pca_vars, "tarsus.length")), log, .names = "log_{.col}"))
+
 # 2. Regress each log beak measurement on log tarsus length.
+size_lm <- lm(as.matrix(pca_size_dta[, pca_vars_log]) ~ log_tarsus.length,
+              data = pca_size_dta)
+
 # 3. Take the residuals: what's left of each beak measurement after removing 
 # the part explained by body size.
+beak_resid <- resid(size_lm)
+
 # Run the PCA on the residuals.
+pca_size <- prcomp(beak_resid, scale = TRUE)
+
+# Percentage of variance explained by each PC
+var_pc_size <- summary(pca_size)$importance["Proportion of Variance", ] * 100
+
+# Summary of the explained variance per component
+summ_pca_var_size <- summary(pca_size)$importance
+
+# Loadings of the PCs
+summ_pca_load_size <- pca_size$rotation
 ```
 
 ```{r tbl-q1-pca-variance}
