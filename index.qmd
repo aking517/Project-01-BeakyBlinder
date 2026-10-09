@@ -15,6 +15,7 @@ editor: visual
 library(tidyverse)
 library(knitr)
 library(kableExtra)
+library(patchwork)
 
 # Color-blind-friendly palette (adapted from Paul Tol), one color per genus
 genus_cols <- c(
@@ -157,25 +158,32 @@ summ_pca_var_nonsize <- summary(pca_orig)$importance
 
 # Loadings of the PCs
 summ_pca_load_nonsize <- pca_orig$rotation
+```
 
+
+```{r q1-pca-size}
 # OWNER: Stephanie (size-corrected PCA)
 # residuals of each log beak measurement on log(tarsus_length)
-# 1. Log-transform the beak measurements and tarsus length.
+# Log-transform the beak measurements and tarsus length.
 pca_size_dta <- penguins %>%
     select(all_of(pca_vars), tarsus.length, genus) %>%
     filter(complete.cases(.)) %>%
     mutate(across(all_of(c(pca_vars, "tarsus.length")), log, .names = "log_{.col}"))
 
-# 2. Regress each log beak measurement on log tarsus length.
+# Regress each log beak measurement on log tarsus length.
 size_lm <- lm(as.matrix(pca_size_dta[, pca_vars_log]) ~ log_tarsus.length,
               data = pca_size_dta)
 
-# 3. Take the residuals: what's left of each beak measurement after removing 
+# Take the residuals: what's left of each beak measurement after removing 
 # the part explained by body size.
 beak_resid <- resid(size_lm)
 
 # Run the PCA on the residuals.
-pca_size <- prcomp(beak_resid, scale = TRUE)
+pca_size <- prcomp(beak_resid, scale. = TRUE)
+
+# Flip PC1 and PC2 signs (arbitrary in PCA) so panel B reads like panel A
+pca_size$x[, 1:2]        <- -pca_size$x[, 1:2]
+pca_size$rotation[, 1:2] <- -pca_size$rotation[, 1:2]
 
 # Percentage of variance explained by each PC
 var_pc_size <- summary(pca_size)$importance["Proportion of Variance", ] * 100
@@ -186,6 +194,8 @@ summ_pca_var_size <- summary(pca_size)$importance
 # Loadings of the PCs
 summ_pca_load_size <- pca_size$rotation
 ```
+
+For the size-corrected PCA, we used only penguins with all three beak measurements and tarsus length (n = `r nrow(pca_size_dta)`), compared with `r nrow(pca_dta)` penguins in the original PCA, because tarsus length is also missing for some individuals. 
 
 ```{r tbl-q1-pca-variance}
 # Table of variance explained by each PC 
@@ -257,84 +267,192 @@ lda_cv <- MASS::lda(x = pca_dta[, pca_vars_log],
 # % correct overall and per genus
 ```
 
-```{r fig-q1-biplot}
-#| fig-cap: "PCA biplot of beak shape across penguin genera. Each point is one penguin, coloured and shaped by genus. Arrows show the loadings of the three log-transformed and scaled beak measurements. PC1 mainly reflects beak thickness (width and depth) and PC2 beak length (culmen). Percentages show the variance explained by each PC." 
 
-# OWNER: Maria
-# PC1 vs PC2 for not size-corrected measures
-# Scores
-scores <- as.data.frame(pca_orig$x) %>%
-  mutate(genus = pca_dta$genus)
+```{r q1-biplot-function}
+# Biplot function
+# Biplot function: same design for the original and size-corrected PCA
+make_biplot <- function(pca, genus, labels, title, arrow_scale = 2.5) {
+    # Percentage of variance explained by each PC
+    var <- summary(pca)$importance["Proportion of Variance", ] * 100
+    # PC1 and PC2 scores of each penguin, with its genus
+    scores <- as_tibble(pca$x[, 1:2]) |> mutate(genus = genus)
+    # Loadings, stretched so the arrows are visible next to the points
+    arrows <- as_tibble(pca$rotation[, 1:2] * arrow_scale) |>
+        mutate(measurement = c("Culmen", "Width", "Depth"),
+               # Mostly horizontal arrow (TRUE) or mostly vertical (FALSE)
+               horiz = abs(PC1) >= abs(PC2),
+               # Label position: at the tip (horizontal) or just beyond it (vertical)
+               lab_x = PC1,
+               lab_y = ifelse(horiz, PC2, PC2 * 1.08),
+               # Horizontal: text runs from the tip towards the centre;
+               # vertical: text centred on the arrow
+               hjust = ifelse(horiz, ifelse(PC1 < 0, 0, 1), 0.5),
+               # Horizontal: one label above its arrow, the other below;
+               # vertical: label beyond the tip
+               vjust = ifelse(horiz,
+                              ifelse(PC2 >= mean(PC2[horiz]), -0.6, 1.6),
+                              ifelse(PC2 < 0, 1, 0)))
 
-# Loadings (multiplied by 3 so the arrows are visible next to the points)
-arrow_scale <- 4
-arrows <- as.data.frame(pca_orig$rotation, rownames = "measurement") %>%
-  mutate(measurement = c("Culmen length", "Beak width", "Beak depth"),
-         PC1 = PC1*arrow_scale,
-         PC2 = PC2*arrow_scale)
+    ggplot(scores, aes(x = PC1, y = PC2)) +
+        # Grey lines at zero (centre of each PC)
+        geom_hline(yintercept = 0, colour = "grey50", linewidth = 0.4) +
+        geom_vline(xintercept = 0, colour = "grey50", linewidth = 0.4) +
+        # Penguins as points, coloured, shaped and sized by genus
+        geom_point(aes(colour = genus, shape = genus, size = genus)) +
+        # Arrows from the centre to each beak measurement's loading
+        geom_segment(data = arrows, aes(x = 0, y = 0, xend = PC1, yend = PC2),
+                     arrow = arrow(length = unit(2, "mm")),
+                     colour = "grey25", linewidth = 0.7) +
+        # Measurement names next to the arrow tips, with a white halo (no box);
+        # force = 0 keeps them exactly where placed
+        ggrepel::geom_text_repel(data = arrows,
+                                 aes(x = lab_x, y = lab_y, label = measurement,
+                                     hjust = hjust, vjust = vjust),
+                                 size = 3.5, colour = "grey25", fontface = "bold",
+                                 bg.colour = "white", bg.r = 0.15,
+                                 force = 0, force_pull = 0, segment.colour = NA,
+                                 seed = 1) +
+        # Rounded white box with the genus name (right edge at label_x)
+        geom_label(data = labels,
+                   aes(x = label_x, y = label_y,
+                       label = paste0(genus, "     "), colour = genus),
+                   hjust = 1, fontface = "italic", size = 3.4, fill = "white",
+                   label.r = unit(0.5, "lines"),
+                   label.padding = unit(0.3, "lines")) +
+        # Genus symbol at the right end inside the box
+        geom_point(data = labels,
+                   aes(x = label_x - 0.17, y = label_y,
+                       colour = genus, shape = genus, size = genus)) +
+        # Genus colours, shapes and sizes (same in every figure)
+        scale_colour_manual(values = genus_cols) +
+        scale_shape_manual(values = genus_shapes) +
+        scale_size_manual(values = genus_sizes) +
+        # Same limits in both panels so they have the same shape and align;
+        # equal scale on both axes so distances are not distorted
+        coord_equal(xlim = c(-4.2, 4.2), ylim = c(-3.3, 3.1), clip = "off") +
+        # Panel title and axis titles with % of variance
+        labs(title = title,
+             x = paste0("PC1 (", round(var["PC1"], 1), "%)"),
+             y = paste0("PC2 (", round(var["PC2"], 1), "%)")) +
+        # Clean theme, light grid, no legend
+        theme_minimal(base_size = 12) +
+        theme(panel.grid.major = element_line(colour = "grey93", linewidth = 0.3),
+              panel.grid.minor = element_blank(),
+              plot.title = element_text(face = "bold", size = 12),
+              legend.position = "none")
+}
+```
 
-# Figure 2: PCA biplot of beak measurements (not size-corrected)
-# Position of each genus label box
-genus_labels <- data.frame(
+
+```{r}
+#| label: fig-q1-biplot
+#| fig-cap: "PCA biplots of beak shape across penguin genera: (A) log-transformed beak measurements; (B) after removing the effect of body size (residuals on log tarsus length). Each point is one penguin, coloured and shaped by genus; arrows show the loadings of the beak measurements. Percentages show the variance explained by each PC."
+#| fig-width: 7
+#| fig-height: 10.5
+# OWNER: Maria (figure), Stephanie (size-corrected PCA)
+
+# Label positions (right edge of each box), original PCA
+genus_labels <- tibble(
     genus   = c("Eudyptes", "Eudyptula", "Aptenodytes",
                 "Spheniscus", "Pygoscelis", "Megadyptes"),
     label_x = c(-0.45, 3.85, 2.65, 2.6, 2.05, -0.55),
     label_y = c(1.8, 1.5, -2.6, 0.35, -0.85, -1.05)
 )
 
-# Base plot PC1 scores on the x-axis, PC2 scores on the y-axis
-ggplot(scores, aes(x = PC1, y = PC2)) +
-    # Grey horizontal line at zero (centre of PC2)
-    geom_hline(yintercept = 0, colour = "grey50", linewidth = 0.4) +
-    # Grey vertical line at zero (centre of PC1)
-    geom_vline(xintercept = 0, colour = "grey50", linewidth = 0.4) +
-    # Penguins as points, coloured, shaped and sized by genus (no transparency)
-    geom_point(aes(colour = genus, shape = genus, size = genus), alpha = 1) +
-    # Arrows from the centre to each beak measurement's loading
-    geom_segment(data = arrows,
-                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
-                 arrow = arrow(length = unit(2, "mm")),
-                 colour = "grey35", linewidth = 0.6) +
-    # Measurement names just beyond the arrow tips, aligned away from the centre
-    geom_text(data = arrows,
-              aes(x = PC1 * 1.12, y = PC2 * 1.12, label = measurement,
-                  hjust = ifelse(PC1 < 0, 1, 0)),
-              size = 3.5, colour = "grey35") +
-    # Rounded white box with the genus name, leaving space on the right for the symbol
-    geom_label(data = genus_labels,
-               aes(x = label_x, y = label_y,
-                   label = paste0("", genus, "     "), colour = genus),
-               hjust = 1, fontface = "italic", size = 3.6,
-               fill = "white",
-               label.r = unit(0.5, "lines"),
-               label.padding = unit(0.3, "lines")) +
-    # Genus symbol at the right end inside the box
-    geom_point(data = genus_labels,
-               aes(x = label_x - 0.17, y = label_y,
-                   colour = genus, shape = genus, size = genus)) +
-    # Colour-blind-friendly colours per genus (adapted from Paul Tol)
-    scale_colour_manual(values = genus_cols) +
-    # One point shape per genus, as a second cue besides colour
-    scale_shape_manual(values = genus_shapes) +
-    # Point size per genus (Megadyptes diamond drawn larger to match the others)
-    scale_size_manual(values = genus_sizes) +
-    # Extra space on the left so arrow labels are not cut off
-    scale_x_continuous(expand = expansion(mult = c(0.25, 0.08))) +
-    # Tick labels every 2 units, with a little space above and below
-    scale_y_continuous(breaks = seq(-4, 2, by = 2),
-                       expand = expansion(mult = c(0.08, 0.08))) +
-    # Same scale on both axes so distances between penguins are not distorted
-    coord_equal() +
-    # Axis titles with PC meaning and % of variance
-    labs(x = paste0("PC1 (", round(var_pc["PC1"], 1), "%)"),
-         y = paste0("PC2 (", round(var_pc["PC2"], 1), "%)")) +
-    # Clean white theme with readable text size
-    theme_minimal(base_size = 12) +
-    # Light major gridlines as a reading guide; no minor gridlines; no legend
-    theme(panel.grid.major = element_line(colour = "grey93", linewidth = 0.3),
-          panel.grid.minor = element_blank(),
-          legend.position = "none")
+# Label positions (right edge of each box), size-corrected PCA after flipping
+genus_labels_size <- tibble(
+    genus   = c("Eudyptes", "Eudyptula", "Aptenodytes",
+                "Spheniscus", "Pygoscelis", "Megadyptes"),
+    label_x = c(-2.0, 4.7, 3.2, 3.6, -1.2, 2.6),
+    label_y = c(1.5, -0.7, -2.6, -1.9, -1.4, 2)
+)
+
+# The two biplots
+p_orig <- make_biplot(pca_orig, pca_dta$genus, genus_labels, "Original")
+p_size <- make_biplot(pca_size, pca_size_dta$genus, genus_labels_size, "Size-corrected")
+
+# Side by side, with panel tags A and B
+p_orig / p_size + plot_annotation(tag_levels = "A")
 ```
+
+<!-- ```{r fig-q1-biplot} -->
+<!-- #| fig-cap: "PCA biplot of beak shape across penguin genera. Each point is one penguin, coloured and shaped by genus. Arrows show the loadings of the three log-transformed and scaled beak measurements. PC1 mainly reflects beak thickness (width and depth) and PC2 beak length (culmen). Percentages show the variance explained by each PC."  -->
+
+<!-- # OWNER: Maria -->
+<!-- # PC1 vs PC2 for not size-corrected measures -->
+<!-- # Scores -->
+<!-- scores <- as.data.frame(pca_orig$x) %>% -->
+<!--   mutate(genus = pca_dta$genus) -->
+
+<!-- # Loadings (multiplied by 3 so the arrows are visible next to the points) -->
+<!-- arrow_scale <- 4 -->
+<!-- arrows <- as.data.frame(pca_orig$rotation, rownames = "measurement") %>% -->
+<!--   mutate(measurement = c("Culmen length", "Beak width", "Beak depth"), -->
+<!--          PC1 = PC1*arrow_scale, -->
+<!--          PC2 = PC2*arrow_scale) -->
+
+<!-- # Figure 2: PCA biplot of beak measurements (not size-corrected) -->
+<!-- # Position of each genus label box -->
+<!-- genus_labels <- data.frame( -->
+<!--     genus   = c("Eudyptes", "Eudyptula", "Aptenodytes", -->
+<!--                 "Spheniscus", "Pygoscelis", "Megadyptes"), -->
+<!--     label_x = c(-0.45, 3.85, 2.65, 2.6, 2.05, -0.55), -->
+<!--     label_y = c(1.8, 1.5, -2.6, 0.35, -0.85, -1.05) -->
+<!-- ) -->
+
+<!-- # Base plot PC1 scores on the x-axis, PC2 scores on the y-axis -->
+<!-- ggplot(scores, aes(x = PC1, y = PC2)) + -->
+<!--     # Grey horizontal line at zero (centre of PC2) -->
+<!--     geom_hline(yintercept = 0, colour = "grey50", linewidth = 0.4) + -->
+<!--     # Grey vertical line at zero (centre of PC1) -->
+<!--     geom_vline(xintercept = 0, colour = "grey50", linewidth = 0.4) + -->
+<!--     # Penguins as points, coloured, shaped and sized by genus (no transparency) -->
+<!--     geom_point(aes(colour = genus, shape = genus, size = genus), alpha = 1) + -->
+<!--     # Arrows from the centre to each beak measurement's loading -->
+<!--     geom_segment(data = arrows, -->
+<!--                  aes(x = 0, y = 0, xend = PC1, yend = PC2), -->
+<!--                  arrow = arrow(length = unit(2, "mm")), -->
+<!--                  colour = "grey35", linewidth = 0.6) + -->
+<!--     # Measurement names just beyond the arrow tips, aligned away from the centre -->
+<!--     geom_text(data = arrows, -->
+<!--               aes(x = PC1 * 1.12, y = PC2 * 1.12, label = measurement, -->
+<!--                   hjust = ifelse(PC1 < 0, 1, 0)), -->
+<!--               size = 3.5, colour = "grey35") + -->
+<!--     # Rounded white box with the genus name, leaving space on the right for the symbol -->
+<!--     geom_label(data = genus_labels, -->
+<!--                aes(x = label_x, y = label_y, -->
+<!--                    label = paste0("", genus, "     "), colour = genus), -->
+<!--                hjust = 1, fontface = "italic", size = 3.6, -->
+<!--                fill = "white", -->
+<!--                label.r = unit(0.5, "lines"), -->
+<!--                label.padding = unit(0.3, "lines")) + -->
+<!--     # Genus symbol at the right end inside the box -->
+<!--     geom_point(data = genus_labels, -->
+<!--                aes(x = label_x - 0.17, y = label_y, -->
+<!--                    colour = genus, shape = genus, size = genus)) + -->
+<!--     # Colour-blind-friendly colours per genus (adapted from Paul Tol) -->
+<!--     scale_colour_manual(values = genus_cols) + -->
+<!--     # One point shape per genus, as a second cue besides colour -->
+<!--     scale_shape_manual(values = genus_shapes) + -->
+<!--     # Point size per genus (Megadyptes diamond drawn larger to match the others) -->
+<!--     scale_size_manual(values = genus_sizes) + -->
+<!--     # Extra space on the left so arrow labels are not cut off -->
+<!--     scale_x_continuous(expand = expansion(mult = c(0.25, 0.08))) + -->
+<!--     # Tick labels every 2 units, with a little space above and below -->
+<!--     scale_y_continuous(breaks = seq(-4, 2, by = 2), -->
+<!--                        expand = expansion(mult = c(0.08, 0.08))) + -->
+<!--     # Same scale on both axes so distances between penguins are not distorted -->
+<!--     coord_equal() + -->
+<!--     # Axis titles with PC meaning and % of variance -->
+<!--     labs(x = paste0("PC1 (", round(var_pc["PC1"], 1), "%)"), -->
+<!--          y = paste0("PC2 (", round(var_pc["PC2"], 1), "%)")) + -->
+<!--     # Clean white theme with readable text size -->
+<!--     theme_minimal(base_size = 12) + -->
+<!--     # Light major gridlines as a reading guide; no minor gridlines; no legend -->
+<!--     theme(panel.grid.major = element_line(colour = "grey93", linewidth = 0.3), -->
+<!--           panel.grid.minor = element_blank(), -->
+<!--           legend.position = "none") -->
+<!-- ``` -->
 
 Some genera form distinct groups in the biplot (@fig-q1-biplot). Aptenodytes separates along the culmen length arrow, indicating longer beaks, while Eudyptula lies opposite the width and depth arrows (narrower, shallower beaks). Eudyptes lies along width and depth arrows direction (wider, deeper beaks). Pygoscelis, Spheniscus and Megadyptes overlap in the centre. Because this PCA was not corrected for size, the extreme positions of the largest (Aptenodytes) and smallest (Eudyptula) penguins may partly reflect body size.
 
@@ -354,13 +472,13 @@ Our PCA showed that penguin beak variation is organised along two largely indepe
 
 <!-- OWNER: Andrew (1-2 paragraphs) -->
 
-(1-2 paragraphs): Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset.
+<!-- (1-2 paragraphs): Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset. -->
 
 ### Approach
 
 <!-- OWNER: Andrew (1-2 paragraphs) -->
 
-(1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets.
+<!-- (1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets. -->
 
 - Figure 3: boxplot of the hand-wing index by genus, with individual penguins as jittered points coloured by genus and the sample size (n) for each genus.
 - Figure 4: mean hand-wing index per genus with 95% confidence intervals (point-and-interval plot), to judge whether genera are similar.
@@ -369,7 +487,7 @@ Also mention what test we chose, ANOVA or Kruskal-Wallis, and the effect size as
 
 ### Analysis
 
-In this section, provide the code that generates your plots. Use scale functions to provide nice axis labels and guides. You are welcome to use theme functions to customize the appearance of your plot, but you are not required to do so. All plots must be made with {ggplot2}. Do not use base R or lattice plotting functions.
+<!-- In this section, provide the code that generates your plots. Use scale functions to provide nice axis labels and guides. You are welcome to use theme functions to customize the appearance of your plot, but you are not required to do so. All plots must be made with {ggplot2}. Do not use base R or lattice plotting functions. -->
 
 ```{r q2-summary}
 # OWNER: Andrew
@@ -406,9 +524,9 @@ In this section, provide the code that generates your plots. Use scale functions
 
 <!-- OWNER: Andrew and Stephanie (Stephanie: exploratory checks) -->
 
-(1-3 paragraphs): In the Discussion section, interpret the results of your analysis. Identify any trends revealed (or not revealed) by the plots.Speculate about why the data looks the way it does.
+<!-- (1-3 paragraphs): In the Discussion section, interpret the results of your analysis. Identify any trends revealed (or not revealed) by the plots.Speculate about why the data looks the way it does. -->
 
-Do genera differ or are they similar (use the plots, test, effect size and confidence intervals)? Possible reasons, e.g., body size (Stephanie can add a sentence on hand-wing index vs tarsus length) and the adaptation of wings into flippers, as interpretations. Limitations: small samples, penguins of the same species are not independent, no environmental variables.
+<!-- Do genera differ or are they similar (use the plots, test, effect size and confidence intervals)? Possible reasons, e.g., body size (Stephanie can add a sentence on hand-wing index vs tarsus length) and the adaptation of wings into flippers, as interpretations. Limitations: small samples, penguins of the same species are not independent, no environmental variables. -->
 
 ## References
 
@@ -420,7 +538,7 @@ Do genera differ or are they similar (use the plots, test, effect size and confi
 
 <!-- OWNER: All. Each member adds how they used AI (if at all). -->
 
-Indicate whether and how AI tools were used in this project. For each tool, state its name and what it was used for.
+<!-- Indicate whether and how AI tools were used in this project. For each tool, state its name and what it was used for. -->
 
 **Maria Sans-Fuentes:** Claude (Anthropic) was used to:
 
