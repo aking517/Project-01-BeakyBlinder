@@ -8,6 +8,8 @@ execute:
   warning: false
   message: false
 editor: visual
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup}
@@ -52,8 +54,7 @@ penguins <- penguins |>
 
 # make genus, species and sex factors
 penguins <- penguins %>%
-    mutate(genus=factor(genus))       # genus as factor
-
+    mutate(across(c(genus, species, sex), factor))    
 ```
 
 ## Introduction
@@ -178,7 +179,7 @@ beak_resid <- resid(size_lm)
 pca_size <- prcomp(beak_resid, scale = TRUE)
 
 # Percentage of variance explained by each PC
-var_pc_size <- summary(pca_size)$importance["Proportion of Variance", ] * 100
+var_pc_size <- summary(pca_size)$importance["Proportion of Variance"] * 100
 
 # Summary of the explained variance per component
 summ_pca_var_size <- summary(pca_size)$importance
@@ -245,16 +246,28 @@ The loadings show that each principal component mainly reflects a different dime
 # (grouping variable to predict)
 # MASS package does lda
 
-# Leave-one-out cross-validation (CV = TRUE): each penguin is classified by a
-# model fitted without that penguin, so the accuracy isn't over-optimistic
+# Leave-one-out cross-validation (CV = TRUE): each penguin is classified by a model fitted without that penguin, so the accuracy isn't over-optimistic
 lda_cv <- MASS::lda(x = pca_dta[, pca_vars_log],
                     grouping = droplevels(pca_dta$genus),
                     CV = TRUE)
 
-
 # table of actual vs predicted genus: table(actual, predicted) - no figure?, 
 # we already will have two figures (PCA + loadings)
 # % correct overall and per genus
+actual <- droplevels(pca_dta$genus)
+predicted <- lda_cv$class
+
+#   Table of actual vs predicted genus (rows = actual, columns = predicted)
+cm <- table(actual, predicted)
+cm
+#   % correct overall
+overall_pct <- sum(diag(cm)) / sum(cm) * 100
+overall_pct         #equivalent: mean(predicted == actual) *100
+
+#   % correct per genus (diagonal / row total, because rows = actual)
+per_genus_pct <- diag(cm) / rowSums(cm) * 100
+round(per_genus_pct, 1)
+
 ```
 
 ```{r fig-q1-biplot}
