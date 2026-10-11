@@ -11,7 +11,7 @@
 
 
 
-<title>README</title>
+<title>Beaks and Flippers</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -348,12 +348,13 @@ display: none;
 
 
 
+<h1 class="title toc-ignore">Beaks and Flippers</h1>
+<h3 class="subtitle">How Beak Shape and Wing Structure Vary Across
+Penguin Genera</h3>
 
 </div>
 
 
-<hr />
-<p>editor_options: markdown: wrap: 72 —</p>
 <div id="many-penguins-dataset-metadata" class="section level1">
 <h1>“Many Penguins” Dataset Metadata</h1>
 <div id="overview" class="section level2">
@@ -383,34 +384,24 @@ data for all birds.” Ecology Letters, 25(3), 581–597. DOI:
 traits and 6 ecological variables: <a href="https://opentraits.org/datasets/avonet.html" class="uri">https://opentraits.org/datasets/avonet.html</a></li>
 </ul></li>
 <li><p>TidyTuesday GitHub repository: <a href="https://github.com/rfordatascience/tidytuesday" class="uri">https://github.com/rfordatascience/tidytuesday</a></p></li>
-<li><p>Specific dataset: file many_penguins.csv, downloadable directly
-at: <a href="https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-07-14/many_penguins.csv" class="uri">https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-07-14/many_penguins.csv</a></p></li>
+<li><p>Specific dataset: TidyTuesday July 14, 2026 data: <a href="https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-07-14/many_penguins.csv" class="uri">https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-07-14/many_penguins.csv</a></p></li>
 </ul>
 </div>
 <div id="codebook" class="section level2">
-<h2>Codebook</h2>
-<ul>
-<li><strong>Description</strong>: This is the “Many Penguins” dataset,
-featured in TidyTuesday on 2026-07-14 (week 28), curated by Ben Bolker
-of McMaster University. It was created as a richer alternative to the
-Palmer Penguins dataset that includes only 3 species. Many Penguins
-dataset contains the penguins (Spheniscidae) records from the much
-larger AVONET database and includes 18 species.
+<h2>Codebook:</h2>
 <ul>
 <li><strong>Filtering step</strong>: Bolker’s cleaning script pulled the
 raw AVONET measurement file (AVONET_Raw_Data.csv) and cross-referenced
 it against AVONET’s species list, filtering to just Family.name ==
 “Spheniscidae” (penguins), using the BirdLife taxonomic backbone
 (Species1_BirdLife).</li>
-</ul></li>
 <li><strong>Dimensions:</strong> 93 rows (individual penguin specimens)
 × 14 columns — 4 categorical/identifier columns (species, genus,
 shortname, sex) and 10 continuous morphometric measurement columns,
 spanning 18 species across 6 genera.</li>
 </ul>
-</div>
-<div id="variable-names-classes-and-descriptions" class="section level2">
-<h2>Variable Names, Classes and Descriptions:</h2>
+<div id="variable-names-classes-and-descriptions" class="section level3">
+<h3>Variable Names, Classes and Descriptions:</h3>
 <table>
 <colgroup>
 <col width="33%" />
@@ -511,10 +502,56 @@ measured using a ruler inserted between the two central rectrices
 </tbody>
 </table>
 </div>
+</div>
 <div id="data-types" class="section level2">
 <h2>Data Types:</h2>
 <ul>
-<li><strong>Column</strong>: data type</li>
+<li><strong>Factor:</strong> Categorical variable used to represent
+taxonomic or demographic categories.</li>
+<li><strong>Double:</strong> Numeric variable stored as a
+double-precision value.</li>
+</ul>
+</div>
+<div id="units-and-measurements" class="section level2">
+<h2>Units and Measurements:</h2>
+<p>Morphometric measurements are reported in millimeters (mm).</p>
+<p>The <code>hand-wing.index</code> variable is a calculated index
+rather than a direct measurement. It represents Kipp’s distance
+corrected for wing size.</p>
+</div>
+<div id="concerns-and-additional-information" class="section level2">
+<h2>Concerns and Additional Information:</h2>
+<ul>
+<li><p><strong>Missing data:</strong> the readme explicitly notes up to
+12% of some measurement types are missing, which is worth checking
+missingness patterns per variable/species before modeling, and
+considering how to handle it (imputation, complete-case analysis, models
+tolerant of missingness).</p></li>
+<li><p><strong>Age was dropped:</strong> the cleaning script excluded an
+Age column because it was uninformative (0 for all but one
+bird).</p></li>
+<li><p><code>hand-wing.index</code> <strong>caveat:</strong> the readme
+flags that species-average HWI values here differ from published
+estimates in Sheard et al. (2020), due to differing sampling intensity
+across species and taxonomic effects tied to the BirdLife species list
+used.</p></li>
+<li><p><strong>Uneven sampling:</strong> 93 individuals across 18
+species is not an even ~5 per species, in which some genera/species will
+have far fewer individuals, This can make comparisons between genera
+less reliable. It can also let well-sampled species dominate their
+genus. We will check sample sizes per genus and species before running
+our analyses and keep this in mind when interpreting the
+results.  </p></li>
+<li><p><strong>Flightless-bird reinterpretation:</strong> traits
+designed around flight biomechanics in AVONET (wing length, Kipp’s
+distance, hand-wing index) describe flipper shape and diving/swimming
+propulsion in penguins rather than aerial flight, which is worth stating
+explicitly in your writeup rather than importing typical “flight
+efficiency” framing.</p></li>
+<li><p><strong>Taxonomic backbone:</strong> built on the BirdLife
+taxonomy specifically (Species1_BirdLife), so species names should be
+cross-checked if bring in outside phylogenetic or IUCN data using a
+different taxonomy (e.g., eBird/Clements or BirdTree).</p></li>
 </ul>
 </div>
 </div>
