@@ -78,7 +78,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
 <!-- OWNER: Stephanie (1-2 paragraphs) -->
-<p>Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset.</p>
+<!-- Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset. -->
 <div class="cell">
 <div id="tbl-missing" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
@@ -181,17 +181,18 @@ Table&nbsp;1: Number of missing values in the variables used in our analyses, by
 <section id="introduction-1" class="level3">
 <h3 class="anchored" data-anchor-id="introduction-1">Introduction</h3>
 <!-- OWNER: Maria (1-2 paragraphs) -->
-<p>(1-2 paragraphs): Introduction to the question and what parts of the dataset are necessary to answer the question. Also discuss why you’re interested in this question.</p>
+<!-- (1-2 paragraphs): Introduction to the question and what parts of the dataset are necessary to answer the question. Also discuss why you’re interested in this question.   -->
+<p>For this question we explore if penguins from the same genus have similar beak shapes that set them apart from other genera, and which part of the beak contributes most to these differences. The dataset includes four beak measurements: beak length (using two different measures), beak width, and beak depth. Together, they give a good picture of overall beak shape. We also use genus to group the penguins and tarsus length as a proxy for body size, so we can check whether differences in beak shape remain once size is removed. Moreover, since beak shape is closely related to diet and how an animal feeds, looking at these differences across genera may suggest how each group has adapted to find food in the ocean.</p>
 </section>
 <section id="approach" class="level3">
 <h3 class="anchored" data-anchor-id="approach">Approach</h3>
 <!-- OWNER: Maria (1-2 paragraphs) -->
-<p>(1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g.&nbsp;boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets.</p>
-<ul>
-<li>Figure 1: bar chart of PCA loadings, to show which beak measurement contributes most to each PC.</li>
-<li>Figure 2: PCA biplot (scatterplot of PC scores, coloured by genus, with loading arrows), faceted into original and size-corrected PCA.</li>
-</ul>
-<p>Also to mention: log-transform and scale; complete cases or imputation; size correction using residuals on tarsus length.</p>
+<!-- (1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets. -->
+<!-- - Figure 1: bar chart of PCA loadings, to show which beak measurement contributes most to each PC. -->
+<!-- - Figure 2: PCA biplot (scatterplot of PC scores, coloured by genus, with loading arrows), faceted into original and size-corrected PCA. -->
+<!-- Also to mention: log-transform and scale; complete cases or imputation; size correction using residuals on tarsus length. -->
+<p>We used Principal Component Analysis (PCA)<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> on three beak measurements: culmen length, beak width and beak depth, using only penguins with all three measurements (complete cases; see <a href="#tbl-missing" class="quarto-xref">Table&nbsp;1</a> and the Analysis section for how we handled missing values). We log-transformed the measurements, which is standard for allometric data<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> (Glazier, 2021), and scaled them so that no single measurement had too much weight. To check whether differences between genera were mainly due to size, we also ran the PCA on size-corrected data, using the residuals from regressing each log beak measurement on log tarsus length (a proxy for body size). Because the sign of a PC is arbitrary, we reversed PC1 and PC2 in the size-corrected PCA so that both analyses point in the same direction.</p>
+<p>The bar chart of the loadings (<a href="#fig-q1-loadings" class="quarto-xref">Figure&nbsp;1</a>) shows how much each beak measurement contributes to each PC. A bar chart is well suited for this because the lengths of the bars can be compared along a common scale, which is easy to read accurately (Cleveland &amp; McGill, 1984), so the measurement that drives each PC stands out. <a href="#fig-q1-biplot" class="quarto-xref">Figure&nbsp;2</a> shows two PCA biplots, one above the other: the original PCA and the size-corrected PCA. Each biplot is a scatterplot of the PC scores of each penguin, with genera identified by a colour-blind-friendly palette and a different symbol, so they can be told apart without relying on color alone. Arrows are overlaid to show the loadings: each arrow points in the direction in which that beak measurement increases, so penguins located towards an arrow tend to have larger values of that measurement, and longer arrows indicate measurements that are better represented by the two PCs shown. Combined, the points and arrows show whether penguins of the same genus cluster and which measurements explain these clusters.</p>
 </section>
 <section id="analysis" class="level3">
 <h3 class="anchored" data-anchor-id="analysis">Analysis</h3>
@@ -250,13 +251,32 @@ Table&nbsp;2: Variance explained by each principal component (PCA on log-transfo
 <img src="index_files/figure-html/fig-q1-loadings-1.png" class="img-fluid figure-img" width="768">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-q1-loadings-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Loadings of the three log-transformed and scaled beak measurements on each principal component. Longer bars mean the measurement contributes more to that PC; dark bars mark the main contributors (|loading| ≥ 0.5). The sign of a loading is arbitrary; what matters is which measurements load strongly together.
+Figure&nbsp;1: Loadings of the three log-transformed and scaled beak measurements on each principal component: (A) original PCA; (B) size-corrected PCA. Signs of PC1 and PC2 in (B) were reversed to match (A); signs in PCA are arbitrary.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>The loadings show that each principal component mainly reflects a different dimension of the beak (<a href="#fig-q1-loadings" class="quarto-xref">Figure&nbsp;1</a>). PC1 is dominated by beak width (-0.7) and beak depth (-0.69), with a small contribution from culmen length, so it mainly represents how wide and deep (thick) the beak is. PC2 is almost entirely determined by culmen length (-0.98) and therefore represents beak length. PC3 contrasts beak width and depth, which load with opposite signs, separating beaks that are deep relative to their width from beaks that are wide relative to their depth. Because the signs of loadings in a PCA are arbitrary, what matters is which measurements load strongly together and whether they share the same or opposite signs.</p>
+<p>The loadings show that each principal component reflects a different dimension of the beak, and that this structure is almost the same before and after size correction (<a href="#fig-q1-loadings" class="quarto-xref">Figure&nbsp;1</a>). In both PCAs, PC1 is dominated by beak width (original: -0.7; size-corrected: -0.71) and beak depth (-0.69; -0.7), so it represents how wide and deep (thick) the beak is. PC2 is almost entirely determined by culmen length (-0.98; -1) and therefore represents beak length, while PC3 contrasts beak width and depth, which load with opposite signs. The main difference is that culmen length contributes even less to PC1 after size correction (-0.18 vs.&nbsp;-0.06), so PC1 becomes an almost pure measure of beak thickness once size is removed. Together, PC1 and PC2 explain most of the variation in both PCAs (86.7% and 87.4%), while PC3 explains little (13.3% and 12.6%), so the biplots (<a href="#fig-q1-biplot" class="quarto-xref">Figure&nbsp;2</a>) show only PC1 and PC2.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>             predicted
+actual        Aptenodytes Eudyptes Eudyptula Megadyptes Pygoscelis Spheniscus
+  Aptenodytes           9        0         0          0          1          0
+  Eudyptes              0       32         0          0          3          0
+  Eudyptula             0        0         7          0          0          0
+  Megadyptes            0        0         0          0          1          3
+  Pygoscelis            0        2         0          0         15          0
+  Spheniscus            0        0         0          0          0         19</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 89.13043</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Aptenodytes    Eudyptes   Eudyptula  Megadyptes  Pygoscelis  Spheniscus 
+       90.0        91.4       100.0         0.0        88.2       100.0 </code></pre>
+</div>
+</div>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-q1-biplot" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -271,80 +291,6 @@ Figure&nbsp;2: PCA biplots of beak shape across penguin genera: (A) log-transfor
 </div>
 </div>
 </div>
-<!-- ```{r fig-q1-biplot} -->
-<!-- #| fig-cap: "PCA biplot of beak shape across penguin genera. Each point is one penguin, coloured and shaped by genus. Arrows show the loadings of the three log-transformed and scaled beak measurements. PC1 mainly reflects beak thickness (width and depth) and PC2 beak length (culmen). Percentages show the variance explained by each PC."  -->
-<!-- # OWNER: Maria -->
-<!-- # PC1 vs PC2 for not size-corrected measures -->
-<!-- # Scores -->
-<!-- scores <- as.data.frame(pca_orig$x) %>% -->
-<!--   mutate(genus = pca_dta$genus) -->
-<!-- # Loadings (multiplied by 3 so the arrows are visible next to the points) -->
-<!-- arrow_scale <- 4 -->
-<!-- arrows <- as.data.frame(pca_orig$rotation, rownames = "measurement") %>% -->
-<!--   mutate(measurement = c("Culmen length", "Beak width", "Beak depth"), -->
-<!--          PC1 = PC1*arrow_scale, -->
-<!--          PC2 = PC2*arrow_scale) -->
-<!-- # Figure 2: PCA biplot of beak measurements (not size-corrected) -->
-<!-- # Position of each genus label box -->
-<!-- genus_labels <- data.frame( -->
-<!--     genus   = c("Eudyptes", "Eudyptula", "Aptenodytes", -->
-<!--                 "Spheniscus", "Pygoscelis", "Megadyptes"), -->
-<!--     label_x = c(-0.45, 3.85, 2.65, 2.6, 2.05, -0.55), -->
-<!--     label_y = c(1.8, 1.5, -2.6, 0.35, -0.85, -1.05) -->
-<!-- ) -->
-<!-- # Base plot PC1 scores on the x-axis, PC2 scores on the y-axis -->
-<!-- ggplot(scores, aes(x = PC1, y = PC2)) + -->
-<!--     # Grey horizontal line at zero (centre of PC2) -->
-<!--     geom_hline(yintercept = 0, colour = "grey50", linewidth = 0.4) + -->
-<!--     # Grey vertical line at zero (centre of PC1) -->
-<!--     geom_vline(xintercept = 0, colour = "grey50", linewidth = 0.4) + -->
-<!--     # Penguins as points, coloured, shaped and sized by genus (no transparency) -->
-<!--     geom_point(aes(colour = genus, shape = genus, size = genus), alpha = 1) + -->
-<!--     # Arrows from the centre to each beak measurement's loading -->
-<!--     geom_segment(data = arrows, -->
-<!--                  aes(x = 0, y = 0, xend = PC1, yend = PC2), -->
-<!--                  arrow = arrow(length = unit(2, "mm")), -->
-<!--                  colour = "grey35", linewidth = 0.6) + -->
-<!--     # Measurement names just beyond the arrow tips, aligned away from the centre -->
-<!--     geom_text(data = arrows, -->
-<!--               aes(x = PC1 * 1.12, y = PC2 * 1.12, label = measurement, -->
-<!--                   hjust = ifelse(PC1 < 0, 1, 0)), -->
-<!--               size = 3.5, colour = "grey35") + -->
-<!--     # Rounded white box with the genus name, leaving space on the right for the symbol -->
-<!--     geom_label(data = genus_labels, -->
-<!--                aes(x = label_x, y = label_y, -->
-<!--                    label = paste0("", genus, "     "), colour = genus), -->
-<!--                hjust = 1, fontface = "italic", size = 3.6, -->
-<!--                fill = "white", -->
-<!--                label.r = unit(0.5, "lines"), -->
-<!--                label.padding = unit(0.3, "lines")) + -->
-<!--     # Genus symbol at the right end inside the box -->
-<!--     geom_point(data = genus_labels, -->
-<!--                aes(x = label_x - 0.17, y = label_y, -->
-<!--                    colour = genus, shape = genus, size = genus)) + -->
-<!--     # Colour-blind-friendly colours per genus (adapted from Paul Tol) -->
-<!--     scale_colour_manual(values = genus_cols) + -->
-<!--     # One point shape per genus, as a second cue besides colour -->
-<!--     scale_shape_manual(values = genus_shapes) + -->
-<!--     # Point size per genus (Megadyptes diamond drawn larger to match the others) -->
-<!--     scale_size_manual(values = genus_sizes) + -->
-<!--     # Extra space on the left so arrow labels are not cut off -->
-<!--     scale_x_continuous(expand = expansion(mult = c(0.25, 0.08))) + -->
-<!--     # Tick labels every 2 units, with a little space above and below -->
-<!--     scale_y_continuous(breaks = seq(-4, 2, by = 2), -->
-<!--                        expand = expansion(mult = c(0.08, 0.08))) + -->
-<!--     # Same scale on both axes so distances between penguins are not distorted -->
-<!--     coord_equal() + -->
-<!--     # Axis titles with PC meaning and % of variance -->
-<!--     labs(x = paste0("PC1 (", round(var_pc["PC1"], 1), "%)"), -->
-<!--          y = paste0("PC2 (", round(var_pc["PC2"], 1), "%)")) + -->
-<!--     # Clean white theme with readable text size -->
-<!--     theme_minimal(base_size = 12) + -->
-<!--     # Light major gridlines as a reading guide; no minor gridlines; no legend -->
-<!--     theme(panel.grid.major = element_line(colour = "grey93", linewidth = 0.3), -->
-<!--           panel.grid.minor = element_blank(), -->
-<!--           legend.position = "none") -->
-<!-- ``` -->
 <p>Some genera form distinct groups in the biplot (<a href="#fig-q1-biplot" class="quarto-xref">Figure&nbsp;2</a>). Aptenodytes separates along the culmen length arrow, indicating longer beaks, while Eudyptula lies opposite the width and depth arrows (narrower, shallower beaks). Eudyptes lies along width and depth arrows direction (wider, deeper beaks). Pygoscelis, Spheniscus and Megadyptes overlap in the centre. Because this PCA was not corrected for size, the extreme positions of the largest (Aptenodytes) and smallest (Eudyptula) penguins may partly reflect body size.</p>
 </section>
 <section id="discussion" class="level3">
@@ -385,7 +331,7 @@ Figure&nbsp;2: PCA biplots of beak shape across penguin genera: (A) log-transfor
 </section>
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
-<!-- OWNER: Stephanie -->
+<!-- OWNER: All -->
 <!-- Everybody review the whole document for consistency -->
 </section>
 <section id="ai-disclosure" class="level2">
@@ -396,12 +342,20 @@ Figure&nbsp;2: PCA biplots of beak shape across penguin genera: (A) log-transfor
 <ul>
 <li>choose a colour-blind-friendly palette for our figures (it suggested a palette adapted from Paul Tol’s colour schemes, with darkened blues so all colours are clearly visible, one colour per genus, and a different point shape per genus as a second cue);</li>
 <li>debug R code, for example how to print the variance explained from a PCA summary with <code>kable()</code> (using <code>summary(pca)$importance</code>) and why missing colour values removed all points from a ggplot;</li>
+<li>place the labels in the PCA biplots (it helped me write the code that positions the measurement names just beyond the end of each loading arrow, keeping the names of arrows that point in the same direction from overlapping, and suggested starting positions for the genus labels, which I then adjusted by hand after checking the rendered figure).</li>
 </ul>
 <p><strong>Andrew King:</strong> (state tool and use, or “No AI tools were used.”)</p>
 <p><strong>Stephanie Wu:</strong> (state tool and use, or “No AI tools were used.”)</p>
 </section>
 
-</main>
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>PCA combines several related measurements into a few new axes, called principal components (PCs), which capture most of the variation in the data. This allows us to summarize the beak measurements in two-dimensional plots.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Allometry refers to the way body parts change in proportion to overall body size; for example, larger penguins tend to have larger beaks. These relationships are usually curved on the original scale but become linear after a log transformation. Logging also makes differences between small and large penguins proportional.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
