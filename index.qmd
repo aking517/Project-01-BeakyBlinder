@@ -120,8 +120,6 @@ missing_by_genus %>%
   set_table_properties(layout = "fixed")
 ```
 
-
-
 ## Question 1: Do penguin genera differ in beak shape?
 
 ### Introduction
@@ -475,6 +473,7 @@ Our PCA showed that penguin beak variation is organised along two largely indepe
 <!-- (1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets. -->
 
 <!-- - Figure 3: boxplot of the hand-wing index by genus, with individual penguins as jittered points coloured by genus and the sample size (n) for each genus. -->
+
 <!-- - Figure 4: mean hand-wing index per genus with 95% confidence intervals (point-and-interval plot), to judge whether genera are similar. -->
 
 <!-- Also mention what test we chose, ANOVA or Kruskal-Wallis, and the effect size as support. -->
@@ -526,7 +525,6 @@ q2_data |>
 
 bartlett.test(hwi ~ genus, data = q2_data)
 ```
-
 
 ```{r fig-q2-boxplot}
 #| fig-cap: "caption for Figure 3"
@@ -600,7 +598,7 @@ q2_summary |>
 - choose a colour-blind-friendly palette for our figures (it suggested a palette adapted from Paul Tol's colour schemes, with darkened blues so all colours are clearly visible, one colour per genus, and a different point shape per genus as a second cue);
 - debug R code, for example how to print the variance explained from a PCA summary with `kable()` (using `summary(pca)$importance`) and why missing colour values removed all points from a ggplot;
 - place the labels in the PCA biplots (it helped me write the code that positions the measurement names just beyond the end of each loading arrow, keeping the names of arrows that point in the same direction from overlapping, and suggested starting positions for the genus labels, which I then adjusted by hand after checking the rendered figure).
-- help configure the document to render in HTML, PDF and Word. This included choosing a package (flextable) that builds the tables in all three formats and adding table of contents for each format.   
+- help configure the document to render in HTML, PDF and Word. This included choosing a package (flextable) that builds the tables in all three formats and adding table of contents for each format.
 
 **Andrew King:** (state tool and use, or "No AI tools were used.")
 
