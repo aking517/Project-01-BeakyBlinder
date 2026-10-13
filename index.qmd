@@ -67,7 +67,7 @@ genus_sizes <- c(Aptenodytes = 2.5, Eudyptes = 2.5, Eudyptula = 2.5,
 penguins <- read_csv("data/many_penguins.csv")
 
 # rename `hand-wing.index` to hwi
-penguins <- penguins |> 
+penguins <- penguins %>% 
     rename(hwi = 'hand-wing.index')
 
 # make genus, species and sex factors
@@ -567,10 +567,57 @@ q2_summary |>
 # OWNER: Stephanie
 # Exploratory checks for possible reasons why the hand-wing index varies (no figures)
 # 1. body size: Spearman correlation between hwi and tarsus_length
+size_cor <- cor.test(q2_data$hwi, q2_data$tarsus.length,
+                     method = "spearman", exact = FALSE) 
+# exact = FALSE because tied values prevent an exact p-value
+size_cor
+
 # 2. components of the index: mean kipps_distance and wing_length per genus
+q2_components <- q2_data |>
+  group_by(genus) |>
+  summarise(
+    n           = n(),
+    mean_kipps  = mean(kipps.distance, na.rm = TRUE),
+    mean_wing   = mean(wing.length, na.rm = TRUE),
+    mean_hwi    = mean(hwi),
+    .groups = "drop"
+  ) |>
+  # ratio of the two means: a quick check that it tracks mean hwi
+  mutate(kipps_wing_ratio = 100 * mean_kipps / mean_wing) |>
+  arrange(desc(mean_hwi))
+
 #    (small table), to see which part drives any differences
 # 3. sex: refer to the sex-ratio table from the Introduction; note any genus
 #    dominated by one sex
+q2_sex <- q2_data |>
+  group_by(genus) |>
+  summarise(
+    F_n = sum(sex == "F", na.rm = TRUE),
+    M_n = sum(sex == "M", na.rm = TRUE),
+    U_n = sum(sex == "U", na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    # % male among penguins of known sex
+    pct_male = 100 * M_n / (F_n + M_n),
+    dominated = case_when(pct_male >= 70 ~ "mostly male",
+                          pct_male <= 30 ~ "mostly female",
+                          TRUE ~ "balanced")
+  )
+
+# This table shows comparing mean Kipp’s distance and wing length across genera to therefore see which part of the hand-wing index drives any differences between them.
+#| tbl-cap: "Mean Kipp's distance, wing length and hand-wing index by genus"
+q2_components |>
+  flextable() |>
+  set_header_labels(genus = "Genus", n = "Penguins",
+                    mean_kipps = "Mean Kipp's distance",
+                    mean_wing = "Mean wing length",
+                    mean_hwi = "Mean hand-wing index",
+                    kipps_wing_ratio = "100 × Kipp's / wing") |>
+  colformat_double(digits = 1) |>
+  italic(j = "genus", part = "body") |>
+  autofit()
+
 ```
 
 ### Discussion
