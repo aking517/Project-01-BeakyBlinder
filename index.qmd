@@ -10,16 +10,6 @@ format:
     embed-resources: true
     code-fold: true
     code-summary: "Show the code"
-  pdf:
-    toc: true
-    toc-depth: 2
-    include-in-header:
-      text: |
-        \usepackage{fvextra}
-        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
-  docx:
-    toc: true
-    toc-depth: 2
 execute:
   echo: true
   warning: false
@@ -34,7 +24,10 @@ editor_options:
 library(tidyverse)
 library(knitr)
 library(patchwork)
+library(kableExtra)
 library(flextable)
+library(officer)
+
 
 # Color-blind-friendly palette (adapted from Paul Tol), one color per genus
 genus_cols <- c(
@@ -101,23 +94,14 @@ missing_by_genus <- penguins %>%
 ```
 
 ```{r tbl-missing}
-#| tbl-cap: "Number of missing values in the variables used in our analyses, by genus"
 # OWNER: Stephanie 
-missing_by_genus %>%
-  flextable() %>%
-  set_header_labels(genus = "Genus", penguins = "Penguins",
-                    beak.length_culmen = "Culmen length",
-                    beak.length_nares = "Nares length",
-                    beak.width = "Beak width", beak.depth = "Beak depth",
-                    tarsus.length = "Tarsus length", hwi = "Hand-wing index",
-                    sex_unknown = "Unknown sex") %>%
-  italic(j = "genus", part = "body") %>%
-  fontsize(size = 11, part = "all") %>%
-  padding(padding.left = 2, padding.right = 2, part = "all") %>%
-  align(j = -1, align = "center", part = "all") %>%
-  width(j = 1, width = 1.0) %>%     # Genus column (inches)
-  width(j = 2:9, width = 0.68) %>%  # the eight number columns
-  set_table_properties(layout = "fixed")
+kable(missing_by_genus, caption= "Number of missing values in the variables used
+      in our analyses, by genus",
+      col.names = c("Genus", "Penguins", "Culmen length", "Nares length",
+                    "Beak width", "Beak depth", "Tarsus length", 
+                    "Hand-wing index", "Unknown sex")) %>%
+    column_spec(1, italic = TRUE) %>%
+    kable_styling()
 ```
 
 ## Question 1: Do penguin genera differ in beak shape?
@@ -236,19 +220,11 @@ summ_pca_load_size <- pca_size$rotation
 For the size-corrected PCA, we used only penguins with all three beak measurements and tarsus length (n = `r nrow(pca_size_dta)`), compared with `r nrow(pca_dta)` penguins in the original PCA, because tarsus length is also missing for some individuals.
 
 ```{r tbl-q1-pca-variance}
-#| tbl-cap: "Variance explained by each principal component (PCA on log-transformed beak measurements, not size-corrected)"
 # Table of variance explained by each PC 
-# kable(summ_pca_var_nonsize, digits = 2,
-#       caption = "Variance explained by each principal component 
-#       (PCA on log-transformed beak measurements, not size-corrected)") %>%
-#     kable_styling()
-summ_pca_var_nonsize %>%
-  as.data.frame() %>%
-  tibble::rownames_to_column("Statistics") %>%
-  flextable() %>%
-  colformat_double(digits = 2) %>%
-  fontsize(size = 11, part = "all") %>%
-  autofit()
+kable(summ_pca_var_nonsize, digits = 2,
+      caption = "Variance explained by each principal component 
+      (PCA on log-transformed beak measurements, not size-corrected)") %>%
+    kable_styling()
 ```
 
 We observed that, together, PC1 and PC2 explained the `r round(summ_pca_var_nonsize[3,2]*100, 2)`% of the total varation (PC1: `r round(summ_pca_var_nonsize[2,1]*100, 2)`%; PC2: `r round(summ_pca_var_nonsize[2,2]*100, 2)`%). PC3 explained the remaining: `r round(summ_pca_var_nonsize[2,3]*100, 3)`% (@tbl-q1-pca-variance).
@@ -383,35 +359,47 @@ make_biplot <- function(pca, genus, labels, title, arrow_scale = 2.5) {
                                  bg.colour = "white", bg.r = 0.15,
                                  force = 0, force_pull = 0, segment.colour = NA,
                                  seed = 1) +
-        # Rounded white box with the genus name (right edge at label_x)
-        geom_label(data = labels,
-                   aes(x = label_x, y = label_y,
-                       label = paste0(genus, "     "), colour = genus),
-                   hjust = 1, fontface = "italic", size = 3.4, fill = "white",
-                   label.r = unit(0.5, "lines"),
-                   label.padding = unit(0.3, "lines")) +
+        # # Rounded white box with the genus name (right edge at label_x)
+        # geom_label(data = labels,
+        #            aes(x = label_x, y = label_y,
+        #                label = paste0(genus, "     "), colour = genus),
+        #            hjust = 1, fontface = "italic", size = 3.4, fill = "white",
+        #            label.r = unit(0.5, "lines"),
+        #            label.padding = unit(0.3, "lines")) +
         # Genus symbol at the right end inside the box
-        geom_point(data = labels,
-                   aes(x = label_x - 0.17, y = label_y,
-                       colour = genus, shape = genus, size = genus)) +
+        # geom_point(data = labels,
+        #            aes(x = label_x - 0.17, y = label_y,
+        #                colour = genus, shape = genus, size = genus)) +
         # Genus colours, shapes and sizes (same in every figure)
         scale_colour_manual(values = genus_cols) +
         scale_shape_manual(values = genus_shapes) +
         scale_size_manual(values = genus_sizes) +
+        # Legend in two columns 
+        guides(colour = guide_legend(ncol = 2),
+               shape  = guide_legend(ncol = 2),
+               size   = guide_legend(ncol = 2)) +
         # Same limits in both panels so they have the same shape and align;
         # equal scale on both axes so distances are not distorted
         coord_equal(xlim = c(-4.2, 4.2), ylim = c(-4.2, 2.5), clip = "off") +
         # Panel title and axis titles with % of variance
         labs(title = title,
              x = paste0("PC1 (", round(var["PC1"], 1), "%)"),
-             y = paste0("PC2 (", round(var["PC2"], 1), "%)")) +
+             y = paste0("PC2 (", round(var["PC2"], 1), "%)"),
+             colour = "Genus", shape = "Genus", size = "Genus") +
         # Clean theme, light grid, no legend
         theme_minimal(base_size = 12) +
         theme(panel.grid.major = element_line(colour = "grey93", linewidth = 0.3),
               panel.grid.minor = element_blank(),
               plot.title = element_text(face = "bold", size = 14),
-              legend.position = "none")
+              legend.title = element_blank(),
+              legend.position = "inside",
+              legend.position.inside = c(1.04, 0.02),
+              legend.justification = c(1, 0),
+              legend.text = element_text(face = "italic"),
+              legend.background = element_rect(fill = "white", colour = NA),
+              legend.margin = margin(4, 6, 4, 6))
 }
+
 ```
 
 ```{r fig-q1-biplot}
@@ -542,9 +530,14 @@ ggplot(q2_labelled, aes(x = genus_n, y = hwi)) +
                 width = 0.15, alpha = 0.7, size = 2.5) +
     scale_y_continuous(name = "Hand-wing index") +
     scale_x_discrete(name = "Genus (sample size)") +
-    scale_colour_viridis_d(guide = "none") +
-    scale_shape_manual(values = rep(c(16, 17, 15, 18, 3, 4), length.out = n_distinct(q2_data$genus)),
-                       guide = "none") +
+    
+    ### MARI comment: I added the defined palettes on top of teh document to be consistent with colors and shapes through the document
+    scale_colour_manual(values = genus_cols, guide = "none") +
+    scale_shape_manual(values = genus_shapes, guide = "none") +
+    scale_size_manual(values = genus_sizes, guide = "none") +
+    # scale_colour_viridis_d(guide = "none") +
+    # scale_shape_manual(values = rep(c(16, 17, 15, 18, 3, 4), length.out = n_distinct(q2_data$genus)),
+    #                    guide = "none") +
     theme_minimal()
 ```
 
@@ -610,14 +603,20 @@ q2_sex <- q2_data |>
 q2_components |>
   flextable() |>
   set_header_labels(genus = "Genus", n = "Penguins",
-                    mean_kipps = "Mean Kipp's distance",
-                    mean_wing = "Mean wing length",
-                    mean_hwi = "Mean hand-wing index",
-                    kipps_wing_ratio = "100 × Kipp's / wing") |>
-  colformat_double(digits = 1) |>
-  italic(j = "genus", part = "body") |>
-  autofit()
+                     mean_kipps = "Mean Kipp's distance",
+                     mean_wing = "Mean wing length",
+                     mean_hwi = "Mean hand-wing index",
+                     kipps_wing_ratio = "100 × Kipp's / wing") |>
+    colformat_double(digits = 1) |>
+    italic(j = "genus", part = "body") |>
+    autofit()
 
+### MARI Comment, I would change the table format using KableExtra, looks better in html than flextable. I did  before flextable beacuase I thought Anna also wanted the document in word, but after talking to her, I think it is better to just do html format. It is more readable
+# kable(q2_components, 
+#       col.names = c("Genus", "Penguins", "Mean Kipp's distance", "Mean wing length", "Mean hand-wing index", "100 × Kipp's / wing"), 
+#       digits = 2) |>
+#     column_spec(1, italic = TRUE) |>
+#     kable_styling()
 ```
 
 ### Discussion
