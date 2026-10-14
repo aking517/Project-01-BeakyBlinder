@@ -452,9 +452,7 @@ Our PCA showed that penguin beak variation is organised along two largely indepe
 
 <!-- OWNER: Andrew (1-2 paragraphs) -->
 
-<!-- (1-2 paragraphs): Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset. -->
-
-### Approach
+This project uses the the "Many penguins" data set from the TidyTuesday project. The data is drawn from AVONET which is a global database that hold morphological, geographical, and ecological traits put together by Tobias et al. for basically all bird species. The data set that we are using is narrowed down to penguins, specially a group of around 20 living species in six different genera. The variable focused on in this question is the hand-wing index (named to hwi), which measures how elongated a penguins wing is. It is calculated as the distance from the tip of the first secondary feather divided by the total wing length. Ecologists commonly use it as a single-number proxy for flight efficiency and dispersal ability, with higher values indicating longer, more pointed wings. Penguins are flightless and use their wings primarily as flippers. We are asking whether the trait tied to flight still differs between genera or has become similar across the group.
 
 <!-- OWNER: Andrew (1-2 paragraphs) -->
 
@@ -465,6 +463,12 @@ Our PCA showed that penguin beak variation is organised along two largely indepe
 <!-- - Figure 4: mean hand-wing index per genus with 95% confidence intervals (point-and-interval plot), to judge whether genera are similar. -->
 
 <!-- Also mention what test we chose, ANOVA or Kruskal-Wallis, and the effect size as support. -->
+
+## Approach
+
+To address our question we made two plots of different types. Figure 3 is a boxplot of the hand-wing index for each genus, with every penguin overlaid as a jittered point. Points are coloured and shaped by genus, and the sample size (n) is shown under each genus name on the x-axis. A boxplot is a good fit because it shows the median, spread and outliers of a numeric variable across several groups at once, which lets us compare the variability of each genus side by side. The jittered points keep the raw data visible, so genera with few penguins are not hidden behind a box, and colour makes each genus easy to follow. Figure 4 is a point-and-interval plot of the mean hand-wing index per genus with 95% confidence intervals. It answers a different question from Figure 3: instead of describing the spread of individual penguins, it shows how precisely each genus mean is estimated, so overlapping intervals suggest similar genera and clearly separated intervals suggest real differences. A bar chart would show the same means but not the uncertainty, so the interval plot is the better choice.
+
+To check the visual impression, we test whether the hand-wing index differs among genera. Bartlett's test indicated unequal variances across genera (p = 0.038), so we use Welch's ANOVA, which does not assume equal variances, followed by Games-Howell pairwise comparisons to identify which genera differ. Since some genera have only four penguins, the low number of penguins can cause issues, so we also run a Kruskal-Wallis test as a robustness check and if both tests agree, our conclusion does not depend on the choice of test. As the effect size we report omega-squared, which is less biased than eta-squared for small groups and estimates the proportion of variation in hand-wing index explained by genus. Finally, because penguins of the same species are not independent observations, and Eudyptula and Megadyptes are each represented by a single species, we also summarise species level averages per genus in a table and compare them descriptively rather than testing them.
 
 ### Analysis
 
@@ -496,22 +500,32 @@ q2_summary
 
 ```{r q2-test}
 # OWNER: Andrew
-# ANOVA or Kruskal-Wallis, and the effect size (eta- or epsilon-squared)# q2-test
-# Kruskal-Wallis test (non-parametric, no normality assumption)
-kw <- kruskal.test(hwi ~ genus, data = q2_data)
-kw
+# Welch's ANOVA (main test), Games-Howell post hoc, omega-squared effect size,
+# Kruskal-Wallis as a robustness check
 
-# effect size: epsilon-squared = H / (n - 1)
-eps_sq <- unname(kw$statistic) / (nrow(q2_data) - 1)
-eps_sq
-
-# Justification checks
+# assumption checks (why Welch rather than standard ANOVA)
 q2_data |>
     group_by(genus) |>
     filter(n() >= 3) |>
     summarise(shapiro_p = shapiro.test(hwi)$p.value)
 
 bartlett.test(hwi ~ genus, data = q2_data)
+
+# main test: Welch's ANOVA (does not assume equal variances)
+oneway.test(hwi ~ genus, data = q2_data, var.equal = FALSE)
+
+# post hoc: which genera differ
+rstatix::games_howell_test(q2_data, hwi ~ genus)
+
+# effect size: omega-squared
+fit <- aov(hwi ~ genus, data = q2_data)
+ss  <- summary(fit)[[1]]
+omega_sq <- (ss[1, "Sum Sq"] - ss[1, "Df"] * ss[2, "Mean Sq"]) /
+    (sum(ss[, "Sum Sq"]) + ss[2, "Mean Sq"])
+omega_sq
+
+# robustness check: Kruskal-Wallis (no normality assumption)
+kruskal.test(hwi ~ genus, data = q2_data)
 ```
 
 ```{r fig-q2-boxplot}
@@ -646,6 +660,8 @@ q2_components |>
 - place the labels in the PCA biplots (it helped me write the code that positions the measurement names just beyond the end of each loading arrow, keeping the names of arrows that point in the same direction from overlapping, and suggested starting positions for the genus labels, which I then adjusted by hand after checking the rendered figure).
 - help configure the document to render in HTML, PDF and Word. This included choosing a package (flextable) that builds the tables in all three formats and adding table of contents for each format.
 
-**Andrew King:** (state tool and use, or "No AI tools were used.")
+**Andrew King:** Claude (Anthropic) was used to:
+
+- I am unfamiliar with implementing Kruskall Wallace and Welch's ANOVA so I used Claude to aid in Q2 test for code implementation and interpretation.
 
 **Stephanie Wu:** (state tool and use, or "No AI tools were used.")
