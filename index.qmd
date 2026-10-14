@@ -76,7 +76,7 @@ penguins <- penguins %>%
 
 This is the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 (week 28), curated by Ben Bolker of McMaster University. It was created as a richer alternative to the Palmer Penguins dataset that includes only 3 species. Many Penguins dataset contains the penguins (Spheniscidae) records from the much larger AVONET database and includes 18 species.
 
-We selected the Many Penguins dataset, derived from the global AVONET database (Tobias et al., 2022), because it lets us explore a question inspired by evolution: do closely related groups that share the same lifestyle end up with similar physical traits? The dataset includes 10 distinct morphometric measurements (physical body measurements) for 93 penguins from `r length(unique(penguins$species))` species within `r length(unique(penguins$genus))` genera. The dataset is cross-sectional and includes measurements of present-day penguin species, which provides a snapshot of penguins today rather than a record of their changes over time. Our goal is to describe and compare how beak shape and wing structure differ between the various penguin genera, and whether different genera remain physically distinct despite sharing an aquatic lifestyle.  
+We selected the Many Penguins dataset, derived from the global AVONET database (Tobias et al., 2022), because it lets us explore a question inspired by evolution: do closely related groups that share the same lifestyle end up with similar physical traits? The dataset includes 10 distinct morphometric measurements (physical body measurements) for 93 penguins from `r length(unique(penguins$species))` species within `r length(unique(penguins$genus))` genera. The dataset is cross-sectional and includes measurements of present-day penguin species, which provides a snapshot of penguins today rather than a record of their changes over time. Our goal is to describe and compare how beak shape and wing structure differ between the various penguin genera, and whether different genera remain physically distinct despite sharing an aquatic lifestyle.
 
 ```{r  data-overview}
 # OWNER: Stephanie
@@ -463,9 +463,9 @@ Our PCAs showed that penguin beak variation is organised along two largely indep
 
 <!-- This project uses the the "Many penguins" data set from the TidyTuesday project. The data is drawn from AVONET which is a global database that hold morphological, geographical, and ecological traits put together by Tobias et al. for basically all bird species. The data set that we are using is narrowed down to penguins, specially a group of `r length(unique(penguins$species))` living species in `r length(unique(penguins$genus))` different genera.  -->
 
-The variable focused on in this question is the hand-wing index (named to hwi), which measures how elongated a penguins wing is. It is calculated as Kipp’s distance (the distance from the tip of the first secondary feather to the tip of the longest primary feather) divided by the total wing length,  multiplied by 100. Ecologists commonly use it as a single-number proxy for flight efficiency and dispersal ability, with higher values indicating longer, more pointed wings (Sheard et al., 2020). Penguins are flightless and use their wings primarily as flippers. We are asking whether the trait tied to flight still differs between genera or has become similar across the group.  If differences remain, they may reflect differences in flipper shape related to how each group swims and forages.  
+The variable focused on in this question is the hand-wing index (named to hwi), which measures how elongated a penguins wing is. It is calculated as Kipp’s distance (the distance from the tip of the first secondary feather to the tip of the longest primary feather) divided by the total wing length, multiplied by 100. Ecologists commonly use it as a single-number proxy for flight efficiency and dispersal ability, with higher values indicating longer, more pointed wings (Sheard et al., 2020). Penguins are flightless and use their wings primarily as flippers. We are asking whether the trait tied to flight still differs between genera or has become similar across the group. If differences remain, they may reflect differences in flipper shape related to how each group swims and forages.
 
-To answer the question, we compare the hand-wing index among the six penguin genera, and we use tarsus length as a proxy for body size to explore possible reasons for any differences.   
+To answer the question, we compare the hand-wing index among the six penguin genera, and we use tarsus length as a proxy for body size to explore possible reasons for any differences.
 
 <!-- OWNER: Andrew (1-2 paragraphs) -->
 
@@ -548,7 +548,6 @@ omega_sq
 kruskal.test(hwi ~ genus, data = q2_data)
 ```
 
-
 ```{r tbl-q2-posthoc}
 #| tbl-cap: "Pairs of penguin genera whose mean hand-wing index differed significantly (Games-Howell test, adjusted p < 0.05). Difference = mean of the genus with the higher index minus the mean of the genus with the lower index, with its 95% confidence interval. All other pairs did not differ significantly."
 # OWNER: Andrew
@@ -571,7 +570,6 @@ q2_gh |>
     kable_styling(full_width = FALSE) |>
     column_spec(1:2, italic = TRUE)
 ```
-
 
 ```{r fig-q2-boxplot}
 #| fig-cap: "caption for Figure 3"
@@ -601,18 +599,44 @@ ggplot(q2_labelled, aes(x = genus_n, y = hwi)) +
 ```
 
 ```{r fig-q2-ci}
-#| fig-cap: "caption for Figure 4"
+#| fig-cap: "caption for Figure "
 # OWNER: Andrew
 # geom_pointrange (mean and 95% CI per genus)
-q2_summary |>
-    filter(!is.na(ci_low)) |>
-    mutate(genus = fct_reorder(genus, mean)) |>
-    ggplot(aes(x = mean, y = genus, colour = genus)) +
-    geom_pointrange(aes(xmin = ci_low, xmax = ci_high), size = 0.7) +
-    scale_x_continuous(name = "Mean hand-wing index (95% CI)") +
-    scale_y_discrete(name = "Genus") +
-    scale_colour_viridis_d(guide = "none") +
-    theme_minimal(base_size = 12)
+# Penguins with both a hand-wing index and a tarsus length
+q2_size <- q2_data |>
+    filter(!is.na(hwi), !is.na(tarsus.length))
+
+# Centre (median) of each genus and its sample size, for the genus names
+# Penguins with both a hand-wing index and a tarsus length
+q2_size <- q2_data |>
+    filter(!is.na(hwi), !is.na(tarsus.length))
+
+q2_size_labels <- q2_size |>
+    group_by(genus) |>
+    summarise(n = n(),
+              tarsus.length = median(tarsus.length),
+              hwi = median(hwi))
+
+ggplot(q2_size, aes(x = tarsus.length, y = hwi)) +
+    # Individual penguins, coloured, shaped and sized by genus
+    geom_point(aes(colour = genus, shape = genus, size = genus), alpha = 0.85) +
+    # Genus names near the centre of each genus, moved apart if they overlap
+    ggrepel::geom_text_repel(data = q2_size_labels,
+                             aes(label = genus, colour = genus),
+                             fontface = 'italic', size = 4,
+                             bg.colour = 'white', bg.r = 0.15,
+                             box.padding = 0.8, min.segment.length = Inf,
+                             seed = 1) +
+    # Axis titles
+    scale_x_continuous(name = "Tarsus length (mm)") +
+    scale_y_continuous(name = "Hand-wing index") +
+    # Genus colours, shapes and sizes (same in every figure); no legend
+    scale_colour_manual(values = genus_cols, guide = "none") +
+    scale_shape_manual(values = genus_shapes, guide = "none") +
+    scale_size_manual(values = genus_sizes, guide = "none") +
+    # Clean theme with light gridlines
+    theme_minimal(base_size = 12) +
+    theme(panel.grid.minor = element_blank())9
 ```
 
 ```{r q2-explore}
