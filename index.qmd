@@ -76,7 +76,7 @@ penguins <- penguins %>%
 
 This is the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 (week 28), curated by Ben Bolker of McMaster University. It was created as a richer alternative to the Palmer Penguins dataset that includes only 3 species. Many Penguins dataset contains the penguins (Spheniscidae) records from the much larger AVONET database and includes 18 species.
 
-We selected the Many Penguins dataset, derived from the global AVONET database (Tobias et al., 2022), because it lets us explore a question inspired by evolution: do closely related groups that share the same lifestyle end up with similar physical traits? The dataset includes 10 distinct morphometric measurements (physical body measurements) for 93 penguins from 18 species within 6 genera. The dataset is cross-sectional and includes measurements of present-day penguin species, which provides a snapshot of penguins today rather than a record of their changes over time. Our goal is to describe and compare how beak shape and wing structure differ between the various penguin genera, and whether different genera remain physically distinct despite sharing an aquatic lifestyle. 
+We selected the Many Penguins dataset, derived from the global AVONET database (Tobias et al., 2022), because it lets us explore a question inspired by evolution: do closely related groups that share the same lifestyle end up with similar physical traits? The dataset includes 10 distinct morphometric measurements (physical body measurements) for 93 penguins from `r length(unique(penguins$species))` species within `r length(unique(penguins$genus))` genera. The dataset is cross-sectional and includes measurements of present-day penguin species, which provides a snapshot of penguins today rather than a record of their changes over time. Our goal is to describe and compare how beak shape and wing structure differ between the various penguin genera, and whether different genera remain physically distinct despite sharing an aquatic lifestyle.  
 
 ```{r  data-overview}
 # OWNER: Stephanie
@@ -149,6 +149,7 @@ r_nares         <- cor(penguins$beak.length_culmen, penguins$beak.length_nares,
                        use = "complete.obs")
 n_nares_missing <- sum(is.na(penguins$beak.length_nares))
 n_depth_missing <- sum(is.na(penguins$beak.depth))
+
 # Missing nares lengths and sample size for the two most affected genera
 eudyptula <- missing_by_genus %>% filter(genus == "Eudyptula")
 pygoscelis <- missing_by_genus %>% filter(genus == "Pygoscelis")
@@ -156,6 +157,8 @@ pygoscelis <- missing_by_genus %>% filter(genus == "Pygoscelis")
 # keep penguins with all 3 beak measurements 
 # Vector with the variable names of the four beak measurements 
 pca_vars <- c("beak.length_culmen","beak.width", "beak.depth")
+
+# Number of species
 
 # Data frame for analyses: completecases and log transformation 
 pca_dta <- penguins %>%
@@ -285,7 +288,7 @@ p_load_size <- make_loadings_plot(pca_size, "Size-corrected")
 p_load_orig / p_load_size + plot_annotation(tag_levels = "A")
 ```
 
-The loadings show that each principal component reflects a different dimension of the beak, and that this structure is almost the same before and after size correction (@fig-q1-loadings). In both PCAs, PC1 is dominated by beak width (original: `r round(summ_pca_load_nonsize["log_beak.width", "PC1"], 2)`; size-corrected: `r round(summ_pca_load_size["log_beak.width", "PC1"], 2)`) and beak depth (`r round(summ_pca_load_nonsize["log_beak.depth", "PC1"], 2)`; `r round(summ_pca_load_size["log_beak.depth", "PC1"], 2)`), so it represents how wide and deep (thick) the beak is. PC2 is almost entirely determined by culmen length (`r round(summ_pca_load_nonsize["log_beak.length_culmen", "PC2"], 2)`; `r round(summ_pca_load_size["log_beak.length_culmen", "PC2"], 2)`) and therefore represents beak length, while PC3 contrasts beak width and depth, which load with opposite signs. The main difference is that culmen length contributes even less to PC1 after size correction (`r round(summ_pca_load_nonsize["log_beak.length_culmen", "PC1"], 2)` vs. `r round(summ_pca_load_size["log_beak.length_culmen", "PC1"], 2)`), so PC1 becomes an almost pure measure of beak thickness once size is removed. Together, PC1 and PC2 explain most of the variation in both PCAs (`r round(var_pc["PC1"] + var_pc["PC2"], 1)`% and `r round(var_pc_size["PC1"] + var_pc_size["PC2"], 1)`%), while PC3 explains little (`r round(var_pc["PC3"], 1)`% and `r round(var_pc_size["PC3"], 1)`%), so the biplots (@fig-q1-biplot) show only PC1 and PC2.
+The loadings show that each principal component reflects a different dimension of the beak, and that this structure is almost the same before and after size correction (@fig-q1-loadings). In both PCAs, PC1 is dominated by beak width (original: `r round(summ_pca_load_nonsize["log_beak.width", "PC1"], 2)`; size-corrected: `r round(summ_pca_load_size["log_beak.width", "PC1"], 2)`) and beak depth (`r round(summ_pca_load_nonsize["log_beak.depth", "PC1"], 2)`; `r round(summ_pca_load_size["log_beak.depth", "PC1"], 2)`), so it represents how wide and deep (thick/robust) the beak is. PC2 is almost entirely determined by culmen length (`r round(summ_pca_load_nonsize["log_beak.length_culmen", "PC2"], 2)`; `r round(summ_pca_load_size["log_beak.length_culmen", "PC2"], 2)`) and therefore represents beak length, while PC3 contrasts beak width and depth, which load with opposite signs. The main difference is that culmen length contributes even less to PC1 after size correction (`r round(summ_pca_load_nonsize["log_beak.length_culmen", "PC1"], 2)` vs. `r round(summ_pca_load_size["log_beak.length_culmen", "PC1"], 2)`), so PC1 becomes an almost pure measure of beak thickness/robutness once size is removed. Together, PC1 and PC2 explain most of the variation in both PCAs (`r round(var_pc["PC1"] + var_pc["PC2"], 1)`% and `r round(var_pc_size["PC1"] + var_pc_size["PC2"], 1)`%), while PC3 explains little (`r round(var_pc["PC3"], 1)`% and `r round(var_pc_size["PC3"], 1)`%), so the biplots (@fig-q1-biplot) show only PC1 and PC2.
 
 ```{r q1-lda}
 # OWNER: Stephanie 
@@ -448,7 +451,7 @@ p_orig / p_size + plot_annotation(tag_levels = "A")
 
 <!-- What PC1 and PC2 represent; whether genera group together; which beak measurement contributes most; what changes after size correction; possible reasons (as interpretations); limitations. -->
 
-Our PCA showed that penguin beak variation is organised along two largely independent dimensions: beak thickness (width and depth, PC1) and beak length (PC2), which together explained `r round(summ_pca_var_nonsize[3,2]*100, 1)`% of the variation. Although we expected that PC1 would reflect overall beak size, culmen length contributed little to PC1. This means that penguins with thicker beaks do not necessarily have longer beaks. This suggests that beak length and thickness may have evolved somewhat independently across penguins, possibly in relation to different feeding demands, although our data cannot test this directly. Because we used only three beak measurements, a simple scatterplot of beak length against depth would show a similar pattern, but the PCA confirmed that width and depth vary together while length varies independently.
+Our PCAs showed that penguin beak variation is organised along two largely independent dimensions: beak thickness (width and depth, PC1) and beak length (PC2), which together explained `r round(summ_pca_var_nonsize[3,2]*100, 1)`% of the variation. Although we expected that PC1 would reflect overall beak size, culmen length contributed little to PC1. This means that penguins with thicker beaks do not necessarily have longer beaks. This suggests that beak length and thickness may have evolved somewhat independently across penguins, possibly in relation to different feeding demands, although our data cannot test this directly. Because we used only three beak measurements, a simple scatterplot of beak length against depth would show a similar pattern, but the PCA confirmed that width and depth vary together while length varies independently.
 
 ## Question 2: Does the hand-wing index still vary among penguin genera?
 
@@ -456,7 +459,13 @@ Our PCA showed that penguin beak variation is organised along two largely indepe
 
 <!-- OWNER: Andrew (1-2 paragraphs) -->
 
-This project uses the the "Many penguins" data set from the TidyTuesday project. The data is drawn from AVONET which is a global database that hold morphological, geographical, and ecological traits put together by Tobias et al. for basically all bird species. The data set that we are using is narrowed down to penguins, specially a group of around 20 living species in six different genera. The variable focused on in this question is the hand-wing index (named to hwi), which measures how elongated a penguins wing is. It is calculated as the distance from the tip of the first secondary feather divided by the total wing length. Ecologists commonly use it as a single-number proxy for flight efficiency and dispersal ability, with higher values indicating longer, more pointed wings. Penguins are flightless and use their wings primarily as flippers. We are asking whether the trait tied to flight still differs between genera or has become similar across the group.
+<!-- I think the commented paragraph below could be merged into the general introduction at the beginning of the document, so it is a general description of the dataset. Here we can just focus on the introduction to this particular question. -->
+
+<!-- This project uses the the "Many penguins" data set from the TidyTuesday project. The data is drawn from AVONET which is a global database that hold morphological, geographical, and ecological traits put together by Tobias et al. for basically all bird species. The data set that we are using is narrowed down to penguins, specially a group of `r length(unique(penguins$species))` living species in `r length(unique(penguins$genus))` different genera.  -->
+
+The variable focused on in this question is the hand-wing index (named to hwi), which measures how elongated a penguins wing is. It is calculated as Kipp’s distance (the distance from the tip of the first secondary feather to the tip of the longest primary feather) divided by the total wing length,  multiplied by 100. Ecologists commonly use it as a single-number proxy for flight efficiency and dispersal ability, with higher values indicating longer, more pointed wings (Sheard et al., 2020). Penguins are flightless and use their wings primarily as flippers. We are asking whether the trait tied to flight still differs between genera or has become similar across the group.  If differences remain, they may reflect differences in flipper shape related to how each group swims and forages.  
+
+To answer the question, we compare the hand-wing index among the six penguin genera, and we use tarsus length as a proxy for body size to explore possible reasons for any differences.   
 
 <!-- OWNER: Andrew (1-2 paragraphs) -->
 
@@ -468,7 +477,7 @@ This project uses the the "Many penguins" data set from the TidyTuesday project.
 
 <!-- Also mention what test we chose, ANOVA or Kruskal-Wallis, and the effect size as support. -->
 
-## Approach
+### Approach
 
 To address our question we made two plots of different types. Figure 3 is a boxplot of the hand-wing index for each genus, with every penguin overlaid as a jittered point. Points are coloured and shaped by genus, and the sample size (n) is shown under each genus name on the x-axis. A boxplot is a good fit because it shows the median, spread and outliers of a numeric variable across several groups at once, which lets us compare the variability of each genus side by side. The jittered points keep the raw data visible, so genera with few penguins are not hidden behind a box, and colour makes each genus easy to follow. Figure 4 is a point-and-interval plot of the mean hand-wing index per genus with 95% confidence intervals. It answers a different question from Figure 3: instead of describing the spread of individual penguins, it shows how precisely each genus mean is estimated, so overlapping intervals suggest similar genera and clearly separated intervals suggest real differences. A bar chart would show the same means but not the uncertainty, so the interval plot is the better choice.
 
@@ -499,7 +508,14 @@ q2_summary <- q2_data |>
     ) |>
     arrange(desc(mean))
 
-q2_summary
+q2_summary %>%
+    mutate(ci = paste0(sprintf("%.2f", ci_low), " – ", sprintf("%.2f", ci_high))) %>%
+    select(genus, n, mean, sd, median, ci) %>%
+    kable(col.names = c("Genus", "n", "Mean", "SD", "Median", "95% CI"),
+          digits = 2, align = c("l", rep("r", 5))) %>%
+    kable_styling(full_width = FALSE) %>%
+    column_spec(1, italic = TRUE) %>%
+    kable_styling() 
 ```
 
 ```{r q2-test}
@@ -519,7 +535,7 @@ bartlett.test(hwi ~ genus, data = q2_data)
 oneway.test(hwi ~ genus, data = q2_data, var.equal = FALSE)
 
 # post hoc: which genera differ
-rstatix::games_howell_test(q2_data, hwi ~ genus)
+q2_gh <-rstatix::games_howell_test(q2_data, hwi ~ genus)
 
 # effect size: omega-squared
 fit <- aov(hwi ~ genus, data = q2_data)
@@ -531,6 +547,31 @@ omega_sq
 # robustness check: Kruskal-Wallis (no normality assumption)
 kruskal.test(hwi ~ genus, data = q2_data)
 ```
+
+
+```{r tbl-q2-posthoc}
+#| tbl-cap: "Pairs of penguin genera whose mean hand-wing index differed significantly (Games-Howell test, adjusted p < 0.05). Difference = mean of the genus with the higher index minus the mean of the genus with the lower index, with its 95% confidence interval. All other pairs did not differ significantly."
+# OWNER: Andrew
+# Significant pairwise comparisons, with the higher-index genus listed first
+
+q2_gh |>
+    filter(p.adj < 0.05) |>
+    # Swap genera when the difference is negative, so all differences are positive
+    mutate(higher  = if_else(estimate > 0, group2, group1),
+           lower   = if_else(estimate > 0, group1, group2),
+           diff    = abs(estimate),
+           ci_low  = if_else(estimate > 0, conf.low, -conf.high),
+           ci_high = if_else(estimate > 0, conf.high, -conf.low),
+           ci      = paste0(sprintf("%.2f", ci_low), " – ", sprintf("%.2f", ci_high)),
+           p_adj   = format.pval(p.adj, digits = 2, eps = 0.001)) |>
+    arrange(desc(diff)) |>
+    select(higher, lower, diff, ci, p_adj) |>
+    kable(col.names = c("Higher index", "Lower index", "Difference", "95% CI", "Adjusted p"),
+          digits = 2, align = c("l", "l", "r", "r", "r")) |>
+    kable_styling(full_width = FALSE) |>
+    column_spec(1:2, italic = TRUE)
+```
+
 
 ```{r fig-q2-boxplot}
 #| fig-cap: "caption for Figure 3"
@@ -653,7 +694,7 @@ kable(
 
 Glazier, D. S. (2021). Biological scaling analyses are more than statistical line fitting. Journal of Experimental Biology, 224(11) .<https://doi.org/10.1242/jeb.241059>
 
-Sheard, C., Neate-Clegg, M. H. C., Alioravainen, N., Jones, S. E. I., Vincent, C., MacGregor, H. E. A., Bregman, T. P., Claramunt, S., & Tobias, J. A. (2020). Ecological drivers of global gradients in avian dispersal inferred from wing morphology. Nature Communications, 11(1),[ https://doi.org/10.1038/s41467-020-16313-6](https://doi.org/10.1038/s41467-020-16313-6)
+Sheard, C., Neate-Clegg, M. H. C., Alioravainen, N., Jones, S. E. I., Vincent, C., MacGregor, H. E. A., Bregman, T. P., Claramunt, S., & Tobias, J. A. (2020). Ecological drivers of global gradients in avian dispersal inferred from wing morphology. Nature Communications, 11(1),<https://doi.org/10.1038/s41467-020-16313-6>
 
 Tobias, J. A., Sheard, C., Pigot, A. L., Devenish, A. J. M., Yang, J., Sayol, F., Neate-Clegg, M. H. C., Alioravainen, N., Weeks, T. L., Barber, R. A., Walkden, P. A., MacGregor, H. E. A., Jones, S. E. I., Vincent, C., Phillips, A. G., Marples, N. M., Montaño-Centellas, F. A., Leandro-Silva, V., Claramunt, S., ... Biggs, R. (2022). AVONET: morphological, ecological and geographical data for all birds. Ecology Letters, 25(3), 581–597. <https://doi.org/10.1111/ele.13898>
 
