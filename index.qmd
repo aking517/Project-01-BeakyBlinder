@@ -74,6 +74,10 @@ penguins <- penguins %>%
 
 <!-- Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset. -->
 
+This is the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 (week 28), curated by Ben Bolker of McMaster University. It was created as a richer alternative to the Palmer Penguins dataset that includes only 3 species. Many Penguins dataset contains the penguins (Spheniscidae) records from the much larger AVONET database and includes 18 species.
+
+We selected the Many Penguins dataset, derived from the global AVONET database (Tobias et al., 2022), because it lets us explore a question inspired by evolution: do closely related groups that share the same lifestyle end up with similar physical traits? The dataset includes 10 distinct morphometric measurements (physical body measurements) for 93 penguins from 18 species within 6 genera. The dataset is cross-sectional and includes measurements of present-day penguin species, which provides a snapshot of penguins today rather than a record of their changes over time. Our goal is to describe and compare how beak shape and wing structure differ between the various penguin genera, and whether different genera remain physically distinct despite sharing an aquatic lifestyle. 
+
 ```{r  data-overview}
 # OWNER: Stephanie
 # table: number of penguins and species per genus (sample sizes)
@@ -647,6 +651,12 @@ q2_components |>
 
 <!-- Everybody review the whole document for consistency -->
 
+Glazier, D. S. (2021). Biological scaling analyses are more than statistical line fitting. Journal of Experimental Biology, 224(11) .<https://doi.org/10.1242/jeb.241059>
+
+Sheard, C., Neate-Clegg, M. H. C., Alioravainen, N., Jones, S. E. I., Vincent, C., MacGregor, H. E. A., Bregman, T. P., Claramunt, S., & Tobias, J. A. (2020). Ecological drivers of global gradients in avian dispersal inferred from wing morphology. Nature Communications, 11(1),[ https://doi.org/10.1038/s41467-020-16313-6](https://doi.org/10.1038/s41467-020-16313-6)
+
+Tobias, J. A., Sheard, C., Pigot, A. L., Devenish, A. J. M., Yang, J., Sayol, F., Neate-Clegg, M. H. C., Alioravainen, N., Weeks, T. L., Barber, R. A., Walkden, P. A., MacGregor, H. E. A., Jones, S. E. I., Vincent, C., Phillips, A. G., Marples, N. M., Montaño-Centellas, F. A., Leandro-Silva, V., Claramunt, S., ... Biggs, R. (2022). AVONET: morphological, ecological and geographical data for all birds. Ecology Letters, 25(3), 581–597. <https://doi.org/10.1111/ele.13898>
+
 ## AI Disclosure
 
 <!-- OWNER: All. Each member adds how they used AI (if at all). -->
@@ -664,4 +674,6 @@ q2_components |>
 
 - I am unfamiliar with implementing Kruskall Wallace and Welch's ANOVA so I used Claude to aid in Q2 test for code implementation and interpretation.
 
-**Stephanie Wu:** (state tool and use, or "No AI tools were used.")
+**Stephanie Wu:** U of A GenAI (state tool and use, or "No AI tools were used.")
+
+- I have limited experience with PCA analysis, so I used the University of Arizona’s GenAI tool to assist with Question 1 (size-corrected PCA), including step-by-step explanations to support my interpretation. I also used it to troubleshoot errors in the linear discriminant analysis section and to provide guidance on coding and interpretation issues in the exploratory portion of Question 2.
