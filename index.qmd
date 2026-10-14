@@ -618,16 +618,16 @@ q2_sex <- q2_data |>
 
 # This table shows comparing mean Kipp’s distance and wing length across genera to therefore see which part of the hand-wing index drives any differences between them.
 #| tbl-cap: "Mean Kipp's distance, wing length and hand-wing index by genus"
-q2_components |>
-  flextable() |>
-  set_header_labels(genus = "Genus", n = "Penguins",
-                     mean_kipps = "Mean Kipp's distance",
-                     mean_wing = "Mean wing length",
-                     mean_hwi = "Mean hand-wing index",
-                     kipps_wing_ratio = "100 × Kipp's / wing") |>
-    colformat_double(digits = 1) |>
-    italic(j = "genus", part = "body") |>
-    autofit()
+kable(
+    q2_components,
+    col.names = c("Genus", "Penguins", "Mean Kipp's distance",
+                  "Mean wing length", "Mean hand-wing index",
+                  "100 × Kipp's / wing"),
+    digits = 1,
+    align = c("l", rep("r", 5))
+) |>
+    kable_styling(full_width = FALSE) |>
+    column_spec(1, italic = TRUE)
 
 ### MARI Comment, I would change the table format using KableExtra, looks better in html than flextable. I did  before flextable beacuase I thought Anna also wanted the document in word, but after talking to her, I think it is better to just do html format. It is more readable
 # kable(q2_components, 
