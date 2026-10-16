@@ -636,7 +636,7 @@ ggplot(q2_size, aes(x = tarsus.length, y = hwi)) +
     scale_size_manual(values = genus_sizes, guide = "none") +
     # Clean theme with light gridlines
     theme_minimal(base_size = 12) +
-    theme(panel.grid.minor = element_blank())9
+    theme(panel.grid.minor = element_blank())
 ```
 
 ```{r q2-explore}
