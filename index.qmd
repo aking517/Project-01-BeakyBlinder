@@ -321,8 +321,15 @@ overall_pct <- sum(diag(cm)) / sum(cm) * 100
 #   % correct per genus (diagonal / row total, because rows = actual)
 per_genus_pct <- diag(cm) / rowSums(cm) * 100
 
-# show only the table
-kable(cm)
+# make the table print with footnote of accuracy
+cm_tbl <- cbind(as.data.frame.matrix(cm),
+                `% correct` = per_genus_pct)
+kable(cm_tbl, digits = 2,
+      caption = "Leave-one-out cross-validated LDA classification of genus
+      from log beak measurements (rows = actual, columns = predicted)") %>%
+    kable_styling() %>%
+    kableExtra::footnote(general = paste0("Overall accuracy: ", round(overall_pct, 1), "%"),
+                         general_title = "")
 
 ```
 
