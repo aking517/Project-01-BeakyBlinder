@@ -292,6 +292,8 @@ The loadings show that each principal component reflects a different dimension o
 
 ```{r q1-lda}
 # OWNER: Stephanie 
+
+#| tbl-cap: "Leave-one-out cross-validated LDA classification of genus from log beak measurements (rows = actual, columns = predicted)"
 # Linear discriminant analysis: how well can genus be predicted from the beak?
 
 # use the same four log beak measurements (predictors) as the PCA, plus genus 
@@ -311,14 +313,16 @@ predicted <- lda_cv$class
 
 #   Table of actual vs predicted genus (rows = actual, columns = predicted)
 cm <- table(actual, predicted)
-cm
+
 #   % correct overall
 overall_pct <- sum(diag(cm)) / sum(cm) * 100
-overall_pct         #equivalent: mean(predicted == actual) *100
+       #equivalent: mean(predicted == actual) *100
 
 #   % correct per genus (diagonal / row total, because rows = actual)
 per_genus_pct <- diag(cm) / rowSums(cm) * 100
-round(per_genus_pct, 1)
+
+# show only the table
+kable(cm)
 
 ```
 
