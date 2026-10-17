@@ -291,9 +291,10 @@ p_load_orig / p_load_size + plot_annotation(tag_levels = "A")
 The loadings show that each principal component reflects a different dimension of the beak, and that this structure is almost the same before and after size correction (@fig-q1-loadings). In both PCAs, PC1 is dominated by beak width (original: `r round(summ_pca_load_nonsize["log_beak.width", "PC1"], 2)`; size-corrected: `r round(summ_pca_load_size["log_beak.width", "PC1"], 2)`) and beak depth (`r round(summ_pca_load_nonsize["log_beak.depth", "PC1"], 2)`; `r round(summ_pca_load_size["log_beak.depth", "PC1"], 2)`), so it represents how wide and deep (thick/robust) the beak is. PC2 is almost entirely determined by culmen length (`r round(summ_pca_load_nonsize["log_beak.length_culmen", "PC2"], 2)`; `r round(summ_pca_load_size["log_beak.length_culmen", "PC2"], 2)`) and therefore represents beak length, while PC3 contrasts beak width and depth, which load with opposite signs. The main difference is that culmen length contributes even less to PC1 after size correction (`r round(summ_pca_load_nonsize["log_beak.length_culmen", "PC1"], 2)` vs. `r round(summ_pca_load_size["log_beak.length_culmen", "PC1"], 2)`), so PC1 becomes an almost pure measure of beak thickness/robutness once size is removed. Together, PC1 and PC2 explain most of the variation in both PCAs (`r round(var_pc["PC1"] + var_pc["PC2"], 1)`% and `r round(var_pc_size["PC1"] + var_pc_size["PC2"], 1)`%), while PC3 explains little (`r round(var_pc["PC3"], 1)`% and `r round(var_pc_size["PC3"], 1)`%), so the biplots (@fig-q1-biplot) show only PC1 and PC2.
 
 ```{r q1-lda}
-# OWNER: Stephanie 
-
+#| label: tbl-lda-cv
 #| tbl-cap: "Leave-one-out cross-validated LDA classification of genus from log beak measurements (rows = actual, columns = predicted)"
+
+# OWNER: Stephanie
 # Linear discriminant analysis: how well can genus be predicted from the beak?
 
 # use the same four log beak measurements (predictors) as the PCA, plus genus 
@@ -324,9 +325,7 @@ per_genus_pct <- diag(cm) / rowSums(cm) * 100
 # make the table print with footnote of accuracy
 cm_tbl <- cbind(as.data.frame.matrix(cm),
                 `% correct` = per_genus_pct)
-kable(cm_tbl, digits = 2,
-      caption = "Leave-one-out cross-validated LDA classification of genus
-      from log beak measurements (rows = actual, columns = predicted)") %>%
+kable(cm_tbl, digits = 2) %>%
     kable_styling() %>%
     kableExtra::footnote(general = paste0("Overall accuracy: ", round(overall_pct, 1), "%"),
                          general_title = "")
