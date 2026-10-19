@@ -5,7 +5,7 @@ authors: "Beaky Blinders: Andrew King, Maria Sans-Fuentes, Stephanie Wu"
 format:
   html:
     toc: true
-    toc-depth: 2
+    toc-depth: 3
     toc-title: "Contents"
     embed-resources: true
     code-fold: true
@@ -20,7 +20,7 @@ editor_options:
 ---
 
 ```{r setup}
-# OWNER: All
+# Load packages
 library(tidyverse)
 library(knitr)
 library(patchwork)
@@ -55,7 +55,6 @@ genus_sizes <- c(Aptenodytes = 2.5, Eudyptes = 2.5, Eudyptula = 2.5,
 ```
 
 ```{r load-data, warning=F, message=F}
-# OWNER: Stephanie
 # Load data
 penguins <- read_csv("data/many_penguins.csv")
 
@@ -70,18 +69,12 @@ penguins <- penguins %>%
 
 ## Introduction
 
-<!-- OWNER: Stephanie (1-2 paragraphs) -->
-
-<!-- Brief introduction to the dataset. You may repeat some of the information about the dataset provided in the introduction to the dataset on the TidyTuesday repository, paraphrasing on your own terms. Imagine that your project is a standalone document and the grader has no prior knowledge of the dataset. -->
-
 This project uses the "Many Penguins" dataset, featured in TidyTuesday on 2026-07-14 (week 28) and curated by Ben Bolker of McMaster University. It was created as a richer alternative to the Palmer Penguins dataset that includes only 3 species. Many Penguins dataset contains the penguins (Spheniscidae) records from the much larger AVONET database, a global database of morphological, ecological and geographical traits for nearly all bird species (Tobias et al., 2022). The dataset includes 10 distinct morphometric measurements (physical body measurements) for `r nrow(penguins)` penguins from `r length(unique(penguins$species))` species within `r length(unique(penguins$genus))` genera. It is cross-sectional and includes measurements of present-day penguin species, which provides a snapshot of penguins today rather than a record of their changes over time. Sample sizes differ widely among genera, and some measurements are missing for several penguins, especially the hand-wing index, which was missing for `r sum(is.na(penguins$hwi))` penguins (@tbl-missing).
 
-We selected thos dataset because it lets us explore a question inspired by evolution: do closely related groups that share the same lifestyle end up with similar physical traits? Our goal is to describe and compare how beak shape and wing structure differ between the various penguin genera, and whether different genera remain physically distinct despite sharing an aquatic lifestyle.
+We selected this dataset because it lets us explore a question inspired by evolution: do closely related groups that share the same lifestyle end up with similar physical traits? Our goal is to describe and compare how beak shape and wing structure differ between the various penguin genera, and whether different genera remain physically distinct despite sharing an aquatic lifestyle.
 
 ```{r  data-overview}
-# OWNER: Stephanie
 # table: number of penguins and species per genus (sample sizes)
-# table: number of F, M and U per genus (sex ratio)
 # % missing per variable 
 
 # Variables used in the analyses
@@ -99,7 +92,7 @@ missing_by_genus <- penguins %>%
 
 ```{r tbl-missing}
 #| tbl-cap: "Number of penguins and of missing values in the variables used in the analyses, by genus. Unknown sex refers to penguins whose sex was recorded as unknown (U)."
-# OWNER: Stephanie 
+
 kable(missing_by_genus,
       col.names = c("Genus", "Penguins", "Culmen length", "Nares length",
                     "Beak width", "Beak depth", "Tarsus length", 
@@ -112,25 +105,11 @@ kable(missing_by_genus,
 
 ### Introduction
 
-<!-- OWNER: Maria (1-2 paragraphs) -->
-
-<!-- (1-2 paragraphs): Introduction to the question and what parts of the dataset are necessary to answer the question. Also discuss why you’re interested in this question.   -->
-
 For this question we explore if penguins from the same genus have similar beak shapes that set them apart from other genera, and which part of the beak contributes most to these differences. The dataset includes four beak measurements: beak length (using two different measures), beak width, and beak depth. Together, they give a good picture of overall beak shape. We also use genus to group the penguins and tarsus length as a proxy for body size, so we can check whether differences in beak shape remain once size is removed. Moreover, since beak shape is closely related to diet and how an animal feeds, looking at these differences across genera may suggest how each group has adapted to find food in the ocean.
 
 ### Approach
 
-<!-- OWNER: Maria (1-2 paragraphs) -->
-
-<!-- (1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets. -->
-
-<!-- - Figure 1: bar chart of PCA loadings, to show which beak measurement contributes most to each PC. -->
-
-<!-- - Figure 2: PCA biplot (scatterplot of PC scores, colored by genus, with loading arrows), faceted into original and size-corrected PCA. -->
-
-<!-- Also to mention: log-transform and scale; complete cases or imputation; size correction using residuals on tarsus length. -->
-
-We used Principal Component Analysis (PCA)[^1] on three beak measurements: culmen length, beak width and beak depth, using only penguins with all three measurements (complete cases; see @tbl-missing and the Analysis section for how we handled missing values). We log-transformed the measurements, which is standard for allometric data[^2] (Glazier, 2021), and scaled them so that no single measurement had too much weight. To check whether differences between genera were mainly due to size, we also ran the PCA on size-corrected data, using the residuals from regressing each log beak measurement on log tarsus length (a proxy for body size). Because the sign of a PC is arbitrary, we reversed PC1 and PC2 in the size-corrected PCA so that both analyses point in the same direction. Because PCA does not quantify how well genera are separated, we also used a linear discriminant analysis (LDA)[^3] with leave-one-out cross-validation[^4] on both the original and the size-corrected measurements.
+We used Principal Component Analysis (PCA)[^1] on three beak measurements: culmen length, beak width and beak depth, using only penguins with all three measurements (complete cases; see @tbl-missing and the Analysis section for how we handled missing values). We log-transformed the measurements, which is standard for allometric data[^2] (Glazier, 2021), and scaled them so that no single measurement had too much weight. To check whether differences between genera were mainly due to size, we also ran the PCA on size-corrected data, using the residuals from regressing each log beak measurement on log tarsus length (a proxy for body size). Because the sign of a principal component (PC) is arbitrary, we reversed PC1 and PC2 in the size-corrected PCA so that both analyses point in the same direction. Because PCA does not quantify how well genera are separated, we also used a linear discriminant analysis (LDA)[^3] with leave-one-out cross-validation[^4] on both the original and the size-corrected measurements.
 
 [^1]: PCA combines several related measurements into a few new axes, called principal components (PCs), which capture most of the variation in the data. This allows us to summarize the beak measurements in two-dimensional plots.
 
@@ -140,14 +119,11 @@ We used Principal Component Analysis (PCA)[^1] on three beak measurements: culme
 
 [^4]: Each penguin is classified by a model fitted without that penguin, so the accuracy is not over-optimistic.
 
-The bar chart of the loadings (@fig-q1-loadings) shows how much each beak measurement contributes to each PC. A bar chart is well suited for this because the lengths of the bars can be compared along a common scale, which is easy to read accurately (Cleveland & McGill, 1984), so the measurement that drives each PC stands out. @fig-q1-biplot shows two PCA biplots, one above the other: the original PCA and the size-corrected PCA. Each biplot is a scatterplot of the PC scores of each penguin, with genera identified by a color-blind-friendly palette and a different symbol, so they can be told apart without relying on color alone. Arrows are overlaid to show the loadings: each arrow points in the direction in which that beak measurement increases, so penguins located towards an arrow tend to have larger values of that measurement, and longer arrows indicate measurements that are better represented by the two PCs shown. Combined, the points and arrows show whether penguins of the same genus cluster and which measurements explain these clusters.
+The bar chart of the loadings (@fig-q1-loadings) shows how much each beak measurement contributes to each PC: the size of a loading shows how strongly a measurement is linked to the PC, and its sign shows whether the measurement increases or decreases as the PC score increases. @fig-q1-biplot shows the biplots of the original and the size-corrected PCA, one above the other with the same axis ranges for direct comparison. Both figures show values as positions along a common scale (the ends of the bars and the points), which is the most accurately judged type of encoding (Cleveland & McGill, 1984), making it easy to see which measurement drives each PC and where each genus falls. In each biplot, the points are the PC scores of each penguin, with genera identified by a color-blind-friendly palette and a different symbol to avoid relying on color alone. Arrows are overlaid to show the loadings: each arrow points in the direction in which that beak measurement increases, so penguins located towards an arrow tend to have larger values of that measurement, and longer arrows indicate measurements that are better represented by the two PCs shown. Combined, the points and arrows show whether penguins of the same genus cluster and which measurements explain these clusters.  
 
 ### Analysis
 
-<!-- In this section, provide the code that generates your plots. Use scale functions to provide nice axis labels and guides. You are welcome to use theme functions to customize the appearance of your plot, but you are not required to do so. All plots must be made with {ggplot2}. Do not use base R or lattice plotting functions. -->
-
 ```{r q1-prepare}
-# OWNER: Maria
 # Numbers for inline code in the Approach
 r_nares         <- cor(penguins$beak.length_culmen, penguins$beak.length_nares,
                        use = "complete.obs")
@@ -180,7 +156,7 @@ pca_vars_log <- c("log_beak.length_culmen","log_beak.width", "log_beak.depth")
 Before running the PCA, we explored missing values in the four beak measurements (@tbl-missing). While culmen length and beak width were complete, beak depth was missing for `r n_depth_missing` penguin, and nares length was missing for `r n_nares_missing` penguins, with the highest proportions in *Eudyptula* (`r eudyptula$beak.length_nares` of `r eudyptula$penguins`) and *Pygoscelis* (`r pygoscelis$beak.length_nares` of `r pygoscelis$penguins`). Because nares length was strongly correlated with culmen length (r = `r round(r_nares, 2)`), which also measures beak length, we excluded this measure to avoid losing these penguins. We considered imputing their values, but imputation would add little new information and could make genera appear more distinct than they are. Therefore, we ran the PCA on culmen length, beak width and beak depth, using only penguins with all three measurements (complete cases, n = `r nrow(pca_dta)`).
 
 ```{r q1-pca}
-# OWNER: Maria (original PCA)
+# original PCA
 # PCA o the log transformed 3 measurements variables (not size-corrected)
 pca_orig <- prcomp(pca_dta[,pca_vars_log], scale=T) 
 
@@ -195,7 +171,7 @@ summ_pca_load_nonsize <- pca_orig$rotation
 ```
 
 ```{r q1-pca-size}
-# OWNER: Stephanie (size-corrected PCA)
+# size-corrected PCA
 # residuals of each log beak measurement on log(tarsus_length)
 # Log-transform the beak measurements and tarsus length.
 pca_size_dta <- penguins %>%
@@ -232,7 +208,7 @@ For the size-corrected PCA, we used only penguins with all three beak measuremen
 
 ```{r tbl-q1-pca-variance}
 #| tbl-cap: "Percentage of variance explained by each principal component in the original and size-corrected PCA of the log-transformed beak measurements."
-# OWNER: Maria
+
 # Table of variance explained by each PC, original and size-corrected PCA
 tibble(PC                = colnames(summ_pca_var_nonsize),
        orig_var          = summ_pca_var_nonsize["Proportion of Variance", ]*100,
@@ -293,7 +269,6 @@ make_loadings_plot <- function(pca, title) {
 #| fig-cap: "Loadings of the three log-transformed and scaled beak measurements on each principal component: (A) original PCA; (B) size-corrected PCA. Signs of PC1 and PC2 in (B) were reversed to match (A); signs in PCA are arbitrary."
 #| fig-width: 8
 #| fig-height: 5.5
-# OWNER: Maria
 
 # Figure 1: bar charts of the PCA loadings
 p_load_orig <- make_loadings_plot(pca_orig, "Original")
@@ -308,7 +283,6 @@ We ran the LDA on the same log-transformed beak measurements as the original PCA
 ```{r tbl-lda-cv}
 #| tbl-cap: "Leave-one-out cross-validated LDA classification of genus from log beak measurements (rows = actual, columns = predicted)"
 
-# OWNER: Stephanie
 # Linear discriminant analysis: how well can genus be predicted from the beak.
 # It uses the same four log beak measurements (predictors) as the PCA, plus genus 
 # (grouping variable to predict)
@@ -343,15 +317,13 @@ kable(cm_tbl, digits = 2) %>%
     column_spec(1, italic = TRUE) %>%
     kableExtra::footnote(general = paste0("Overall accuracy: ", round(overall_pct, 1), "%"),
                          general_title = "")
-
 ```
 
 ```{r tbl-lda-cv-size}
 #| tbl-cap: "Leave-one-out cross-validated LDA classification of genus from the size-corrected beak measurements (residuals on log tarsus length) (rows = actual genus, columns = predicted genus)."
-# OWNER: Stephanie
+
 # LDA, using the size-corrected data
 # Predictors: residuals of each log beak measurement on log tarsus length
-
 # Leave-one-out cross-validation, as above
 lda_cv_size <- MASS::lda(x = beak_resid,
                          grouping = droplevels(pca_size_dta$genus),
@@ -387,7 +359,7 @@ make_biplot <- function(pca, genus, labels, title, arrow_scale = 2.5) {
     scores <- as_tibble(pca$x[, 1:2]) |> mutate(genus = genus)
     # Loadings, stretched so the arrows are visible next to the points
     arrows <- as_tibble(pca$rotation[, 1:2] * arrow_scale) |>
-        mutate(measurement = c("Culmen", "Width", "Depth"),
+        mutate(measurement = c("Length", "Width", "Depth"),
                # Mostly horizontal arrow (TRUE) or mostly vertical (FALSE)
                horiz = abs(PC1) >= abs(PC2),
                # Label just beyond the arrow tip
@@ -422,18 +394,6 @@ make_biplot <- function(pca, genus, labels, title, arrow_scale = 2.5) {
                                  bg.color = "white", bg.r = 0.15,
                                  force = 0, force_pull = 0, segment.color = NA,
                                  seed = 1) +
-        # # Rounded white box with the genus name (right edge at label_x)
-        # geom_label(data = labels,
-        #            aes(x = label_x, y = label_y,
-        #                label = paste0(genus, "     "), color = genus),
-        #            hjust = 1, fontface = "italic", size = 3.4, fill = "white",
-        #            label.r = unit(0.5, "lines"),
-        #            label.padding = unit(0.3, "lines")) +
-        # Genus symbol at the right end inside the box
-        # geom_point(data = labels,
-        #            aes(x = label_x - 0.17, y = label_y,
-        #                color = genus, shape = genus, size = genus)) +
-        # Genus colors, shapes and sizes (same in every figure)
         scale_color_manual(values = genus_cols) +
         scale_shape_manual(values = genus_shapes) +
         scale_size_manual(values = genus_sizes) +
@@ -462,14 +422,12 @@ make_biplot <- function(pca, genus, labels, title, arrow_scale = 2.5) {
               legend.background = element_rect(fill = "white", color = NA),
               legend.margin = margin(4, 6, 4, 6))
 }
-
 ```
 
 ```{r fig-q1-biplot}
 #| fig-cap: "PCA biplots of beak shape across penguin genera: (A) log-transformed beak measurements; (B) after removing the effect of body size (residuals on log tarsus length). Each point is one penguin, colored and shaped by genus; arrows show the loadings of the beak measurements. Percentages show the variance explained by each PC."
 #| fig-width: 7
 #| fig-height: 10.5
-# OWNER: Maria (figure), Stephanie (size-corrected PCA)
 
 # Label positions (right edge of each box), original PCA
 genus_labels <- tibble(
@@ -497,54 +455,31 @@ p_orig / p_size + plot_annotation(tag_levels = "A")
 
 ### Discussion
 
-<!-- OWNER: Maria and Stephanie (Stephanie: size correction and LDA) -->
+**Principal components.** Our PCAs showed that penguin beak variation is organized along two largely distinct dimensions, both before and after size correction (@fig-q1-loadings; @tbl-q1-pca-variance): beak thickness/robustness (PC1, dominated by beak width and depth) and beak length (PC2, almost entirely determined by culmen length). Because these loadings are negative, lower scores mean thicker and longer beaks, respectively. Although we expected that PC1 would reflect overall beak size, culmen length contributed little to PC1 (`r round(summ_pca_load_nonsize["log_beak.length_culmen", "PC1"], 2)`), and even less after size correction (`r round(summ_pca_load_size["log_beak.length_culmen", "PC1"], 2)`). Thicker beaks are therefore not necessarily longer, suggesting that beak length and thickness may have evolved somewhat independently, possibly in relation to feeding, which our data cannot test. Because PC1 and PC2 explained most of the variation (about 87% in both PCAs), the biplots (@fig-q1-biplot) show only these two components.
 
-<!-- (1-3 paragraphs): In the Discussion section, interpret the results of your analysis. Identify any trends revealed (or not revealed) by the plots.Speculate about why the data looks the way it does. -->
+**Original PCA.** Some genera form distinct groups in the biplot (@fig-q1-biplot A). *Aptenodytes* separates along the culmen length arrow, indicating longer beaks, while *Eudyptula* lies opposite the width and depth arrows (narrower, shallower beaks). *Eudyptes* lies in the direction of the width and depth arrows (wider, deeper beaks). *Pygoscelis*, *Spheniscus* and *Megadyptes* overlap in the center. Because this PCA was not corrected for size, the extreme positions of the largest (*Aptenodytes*) and smallest (*Eudyptula*) penguins may partly reflect body size.
 
-<!-- What PC1 and PC2 represent; whether genera group together; which beak measurement contributes most; what changes after size correction; possible reasons (as interpretations); limitations. -->
-
-**Principal components.** Our PCAs showed that penguin beak variation is organised along two largely distinct dimensions, both before and after size correction (@fig-q1-loadings; @tbl-q1-pca-variance): beak thickness/robustness (PC1, dominated by beak width and depth) and beak length (PC2, almost entirely determined by culmen length). Although we expected that PC1 would reflect overall beak size, culmen length contributed little to PC1 (`r round(summ_pca_load_nonsize["log_beak.length_culmen", "PC1"], 2)`), and even less after size correction (`r round(summ_pca_load_size["log_beak.length_culmen", "PC1"], 2)`). This means that penguins with thicker beaks do not necessarily have longer beaks. This suggests that beak length and thickness may have evolved somewhat independently across penguins, possibly in relation to different feeding demands, although our data cannot test this directly. Because PC1 and PC2 explained most of the variation, the biplots (@fig-q1-biplot) show only these two components.
-
-**Original PCA.** Some genera form distinct groups in the biplot (@fig-q1-biplot A). Aptenodytes separates along the culmen length arrow, indicating longer beaks, while Eudyptula lies opposite the width and depth arrows (narrower, shallower beaks). *Eudyptes* lies in the direction of the width and depth arrows (wider, deeper beaks). *Pygoscelis*, *Spheniscus* and *Megadyptes* overlap in the centre. Because this PCA was not corrected for size, the extreme positions of the largest (*Aptenodytes*) and smallest (*Eudyptula*) penguins may partly reflect body size.
-
-**Size-corrected PCA.** After removing the effect of body size, the same overall pattern remains, although the groups are less compact and overlap more (@fig-q1-biplot B). Aptenodytes still lies along the culmen length arrow, but closer to the centre, which suggests that its long beak is partly, but not only, explained by its large size. Eudyptula still lies opposite the width and depth arrows, so its beak remains relatively narrow and shallow for its size, and Eudyptes still lies towards wider, deeper beaks. The LDA supports this pattern: genus was correctly predicted for `r round(overall_pct, 1)`% of penguins with the original measurements and still for `r round(overall_pct_size, 1)`% after size correction (@tbl-lda-cv; @tbl-lda-cv-size), so differences in beak shape between genera are not simply a consequence of body size. The exception is the group of Pygoscelis, Spheniscus and Megadyptes, which continue to overlap in the centre; no Megadyptes penguin was correctly classified, most being assigned to Spheniscus.
+**Size-corrected PCA.** After removing the effect of body size, the same overall pattern remains, although the groups are less compact and overlap more (@fig-q1-biplot B). *Aptenodytes* still lies along the culmen length arrow, but closer to the center, which suggests that its long beak is partly, but not only, explained by its large size. *Eudyptula* still lies opposite the width and depth arrows, so its beak remains relatively narrow and shallow for its size, and *Eudyptes* still lies towards wider, deeper beaks. The LDA supports this pattern: genus was correctly predicted for `r round(overall_pct, 1)`% of penguins with the original measurements and still for `r round(overall_pct_size, 1)`% after size correction (@tbl-lda-cv; @tbl-lda-cv-size), so penguin genera do differ in beak shape, and these differences are not simply a consequence of body size. The exception is the group of *Pygoscelis*, *Spheniscus* and *Megadyptes*, which continue to overlap in the center; note that no *Megadyptes* penguin was correctly classified, most being assigned to *Spheniscus* (@tbl-lda-cv; @tbl-lda-cv-size).
 
 ## Question 2: Does the hand-wing index still vary among penguin genera?
 
 ### Introduction
 
-<!-- OWNER: Andrew (1-2 paragraphs) -->
-
-<!-- I think the commented paragraph below could be merged into the general introduction at the beginning of the document, so it is a general description of the dataset. Here we can just focus on the introduction to this particular question. -->
-
 The variable focused on in this question is the hand-wing index, which measures how elongated a bird's wing is. It is calculated as Kipp’s distance (the distance from the tip of the first secondary feather to the tip of the longest primary feather) divided by the total wing length, multiplied by 100. Ecologists commonly use it as a single-number proxy for flight efficiency and dispersal ability, with higher values indicating longer, more pointed wings (Sheard et al., 2020).
 
 Penguins are flightless and use their wings primarily as flippers. We are asking whether this trait, normally tied to flight, still differs between genera or has become similar across the group. If differences remain, they may reflect differences in flipper shape related to how each group swims and forages. To answer the question, we compare the hand-wing index among the six penguin genera, and we use tarsus length as a proxy for body size to explore possible reasons for any differences.
 
-<!-- OWNER: Andrew (1-2 paragraphs) -->
-
-<!-- (1-2 paragraphs): Describe what types of plots you are going to make to address your question. For each plot, provide a clear explanation as to why this plot (e.g. boxplot, barplot, histogram, etc.) is best for providing the information you are asking about. The two plots should be of different types, and at least one of the two plots needs to use either color mapping or facets. -->
-
-<!-- - Figure 3: boxplot of the hand-wing index by genus, with individual penguins as jittered points colored by genus and the sample size (n) for each genus. -->
-
-<!-- - Figure 4: mean hand-wing index per genus with 95% confidence intervals (point-and-interval plot), to judge whether genera are similar. -->
-
-<!-- Also mention what test we chose, ANOVA or Kruskal-Wallis, and the effect size as support. -->
-
 ### Approach
 
-To address our question we made two plots of different types. @fig-q2-boxplot is a boxplot of the hand-wing index for each genus, with every penguin overlaid as a jittered point, colored and shaped by genus, and the sample size (n) shown under each genus name. A boxplot is a good fit because it shows the median, spread and outliers of a numeric variable across several groups at once, and the jittered points keep the raw data visible, so genera with few penguins are not hidden behind a box. @fig-q2-size is a scatterplot of the hand-wing index against tarsus length (a proxy for body size), with points colored and shaped by genus. A scatterplot is the best choice for showing the relationship between two numeric variables, and coloring by genus shows whether any trend reflects differences between genera.
+To address our question we made two plots of different types. @fig-q2-boxplot is a boxplot of the hand-wing index for each genus, with every penguin overlaid as a jittered point, colored and shaped by genus, and the sample size (n) shown under each genus name. A boxplot is a good fit because it shows the median, spread and outliers of a numeric variable across several groups at once (Heer et al., 2010), and the jittered points keep the raw data visible, so genera with few penguins are not hidden behind a box. @fig-q2-size is a scatterplot of the hand-wing index against tarsus length (a proxy for body size), with points colored and shaped by genus. A scatterplot is the best choice for showing the relationship between two numeric variables (Saket et al., 2019), and coloring by genus shows whether any trend reflects differences between genera.
 
 To check the visual impression, we tested whether the hand-wing index differs among genera. Because Bartlett’s test indicated unequal variances across genera, we used Welch’s ANOVA, which does not assume equal variances, followed by Games-Howell pairwise comparisons to identify which genera differ. Since some genera have only four penguins, we also ran a Kruskal-Wallis test as a robustness check; if both tests agree, our conclusion does not depend on the choice of test. As the effect size we report omega-squared, which is less biased than eta-squared for small groups and estimates the proportion of variation in hand-wing index explained by genus. Finally, to explore possible reasons for any differences, we compared the mean Kipp’s distance and wing length of each genus (@tbl-q2-components) and the correlation between the hand-wing index and tarsus length (Spearman’s rank correlation).
 
 ### Analysis
 
-<!-- In this section, provide the code that generates your plots. Use scale functions to provide nice axis labels and guides. You are welcome to use theme functions to customize the appearance of your plot, but you are not required to do so. All plots must be made with {ggplot2}. Do not use base R or lattice plotting functions. -->
-
 ```{r tbl-q2-summary}
 #| tbl-cap: "Hand-wing index by penguin genus: number of penguins with a hand-wing index (n), mean, standard deviation (SD), median and 95% confidence interval (CI) of the mean." 
 
-# OWNER: Andrew
 # Filter out missing values
 q2_data <- penguins |>
     filter(!is.na(hwi), !is.na(genus))
@@ -573,10 +508,9 @@ q2_summary %>%
     kable_styling() 
 ```
 
-The number of penguins with a hand-wing index ranged from `r min(q2_summary$n)` to `r max(q2_summary$n)` per genus, and mean values ranged from `r sprintf("%.2f", min(q2_summary$mean))` (*`r q2_summary$genus[which.min(q2_summary$mean)]`*) to `r sprintf("%.2f", max(q2_summary$mean))` (*`r q2_summary$genus[which.max(q2_summary$mean)]`*) (@tbl-q2-summary).
+We analyzed the `r nrow(q2_data)` of `r nrow(penguins)` penguins with both a hand-wing index and a tarsus length (see @tbl-missing). The number of penguins with a hand-wing index ranged from `r min(q2_summary$n)` to `r max(q2_summary$n)` per genus, and mean values ranged from `r sprintf("%.2f", min(q2_summary$mean))` (*`r q2_summary$genus[which.min(q2_summary$mean)]`*) to `r sprintf("%.2f", max(q2_summary$mean))` (*`r q2_summary$genus[which.max(q2_summary$mean)]`*) (@tbl-q2-summary).
 
 ```{r q2-test}
-# OWNER: Andrew
 # Welch's ANOVA (main test), Games-Howell post hoc, omega-squared effect size,
 # Kruskal-Wallis as a robustness check
 
@@ -604,24 +538,25 @@ omega_sq <- (ss[1, "Sum Sq"] - ss[1, "Df"] * ss[2, "Mean Sq"]) /
 q2_kw <- kruskal.test(hwi ~ genus, data = q2_data)
 ```
 
-Because variances differed among genera (Bartlett's test, p = `r round(q2_bartlett$p.value, 3)`), we used Welch's ANOVA, which does not assume equal variances. The hand-wing index differed among genera (F = `r round(q2_welch$statistic, 1)`, p `r format.pval(q2_welch$p.value, digits = 2, eps = 0.001)`), with a large effect size (ω² = `r round(omega_sq, 2)`). Although Shapiro-Wilk tests did not detect departures from normality in any genus, these tests have little power with so few penguins per genus, so we also ran a Kruskal-Wallis test, which does not assume normality; it gave the same result (H = `r round(q2_kw$statistic, 1)`, p `r format.pval(q2_kw$p.value, digits = 2, eps = 0.001)`). Pairwise comparisons (Games-Howell) identified `r sum(q2_gh$p.adj < 0.05)` pairs of genera that differed significantly (@tbl-q2-posthoc).
+Because variances differed among genera (Bartlett's test, p = `r round(q2_bartlett$p.value, 3)`), we used Welch's ANOVA, which does not assume equal variances. The hand-wing index differed among genera (F = `r round(q2_welch$statistic, 1)`, p `r format.pval(q2_welch$p.value, digits = 2, eps = 0.001)`), with a large effect size ($\omega^2$ = `r round(omega_sq, 2)`). Although Shapiro-Wilk tests did not detect departures from normality in any genus, these tests have little power with so few penguins per genus, so we also ran a Kruskal-Wallis test, which does not assume normality; it gave the same result (H = `r round(q2_kw$statistic, 1)`, p `r format.pval(q2_kw$p.value, digits = 2, eps = 0.001)`). Pairwise comparisons (Games-Howell) identified `r sum(q2_gh$p.adj < 0.05)` pairs of genera that differed significantly (@tbl-q2-posthoc).
 
 ```{r tbl-q2-posthoc}
-#| tbl-cap: "Pairs of penguin genera whose mean hand-wing index differed significantly (Games-Howell test, adjusted p < 0.05). Difference = mean of the genus with the higher index minus the mean of the genus with the lower index, with its 95% confidence interval. All other pairs did not differ significantly."
-# OWNER: Andrew
-# Significant pairwise comparisons, with the higher-index genus listed first
+#| tbl-cap: "Pairs of penguin genera whose mean hand-wing index differed significantly (Games-Howell test, p < 0.05 after Tukey adjustment for multiple comparisons). Difference = mean of the genus with the higher index minus the mean of the genus with the lower index, with its 95% confidence interval. All other pairs did not differ significantly."
 
-q2_gh |>
-    filter(p.adj < 0.05) |>
-    # Swap genera when the difference is negative, so all differences are positive
-    mutate(higher  = if_else(estimate > 0, group2, group1),
+# Significant pairwise comparisons, with the higher-index genus listed first
+q2_gh_sig <- q2_gh |>
+      filter(p.adj < 0.05) |>
+      # Swap genera when the difference is negative, so all differences are positive
+      mutate(higher  = if_else(estimate > 0, group2, group1),
            lower   = if_else(estimate > 0, group1, group2),
            diff    = abs(estimate),
            ci_low  = if_else(estimate > 0, conf.low, -conf.high),
            ci_high = if_else(estimate > 0, conf.high, -conf.low),
            ci      = paste0(sprintf("%.2f", ci_low), " – ", sprintf("%.2f", ci_high)),
            p_adj   = format.pval(p.adj, digits = 2, eps = 0.001)) |>
-    arrange(desc(diff)) |>
+      arrange(desc(diff))
+
+q2_gh_sig  |> 
     select(higher, lower, diff, ci, p_adj) |>
     kable(col.names = c("Higher index", "Lower index", "Difference", "95% CI", "Adjusted p"),
           digits = 2, align = c("l", "l", "r", "r", "r")) |>
@@ -634,9 +569,7 @@ q2_gh |>
 ```{r fig-q2-boxplot}
 #| fig-cap: "Hand-wing index by penguin genus. Boxplots show the median and interquartile range; points are individual penguins, colored and shaped by genus. Genera are ordered by median hand-wing index, and n is the number of penguins with a hand-wing index."
 
-# OWNER: Andrew
 # geom_boxplot + geom_jitter, color and shape = genus, n per genus
-
 q2_labelled <- q2_data |>
     add_count(genus, name = "n") |>
     mutate(genus_n = fct_reorder(paste0(genus, "\n(n = ", n, ")"),
@@ -662,7 +595,6 @@ ggplot(q2_labelled, aes(x = genus_n, y = hwi)) +
 ```{r fig-q2-size}
 #| fig-cap: "Hand-wing index against tarsus length (a proxy for body size). Each point is one penguin with both measurements, colored and shaped by genus; genus names are placed near the center of each genus."
 
-# OWNER: Andrew
 # geom_pointrange (mean and 95% CI per genus)
 # Penguins with both a hand-wing index and a tarsus length
 q2_size <- q2_data |>
@@ -704,7 +636,6 @@ ggplot(q2_size, aes(x = tarsus.length, y = hwi)) +
 ```{r tbl-q2-components}
 #| tbl-cap: "Mean Kipp's distance, wing length and hand-wing index by genus. Genera are ordered by mean hand-wing index."
 
-# OWNER: Stephanie
 # Exploratory checks for possible reasons why the hand-wing index varies 
 # Body size: Spearman correlation between hwi and tarsus_length
 # exact = FALSE because tied values prevent an exact p-value
@@ -725,8 +656,7 @@ q2_components <- q2_data |>
   mutate(kipps_wing_ratio = 100 * mean_kipps / mean_wing) |>
   arrange(desc(mean_hwi))
 
-# Sex: number of female, male and unknown-sex penguins per genus, to check
-# whether any genus is dominated by one sex (reported in the Discussion). 
+# Sex: number of female, male and unknown-sex penguins per genus
 q2_sex <- q2_data |>
   group_by(genus) |>
   summarise(
@@ -744,7 +674,6 @@ q2_sex <- q2_data |>
   )
 
 # This table shows comparing mean Kipp’s distance and wing length across genera 
-# to see which part of the hand-wing index drives any differences between them.
 kable(
     q2_components,
     col.names = c("Genus", "Penguins", "Mean Kipp's distance",
@@ -757,39 +686,32 @@ kable(
     column_spec(1, italic = TRUE)
 ```
 
-The hand-wing index was significantly correlated with tarsus length (Spearman's $\rho$ = `r round(size_cor$estimate, 2)`, p `r format.pval(size_cor$p.value, digits = 2, eps = 0.001)`; @fig-q2-size). @tbl-q2-components shows the mean Kipp's distance and wing length of each genus, the two components of the hand-wing index.
+The hand-wing index was significantly and negatively correlated with tarsus length (Spearman's $\rho$ = `r round(size_cor$estimate, 2)`, p `r format.pval(size_cor$p.value, digits = 2, eps = 0.001)`; @fig-q2-size). @tbl-q2-components shows the mean Kipp's distance and wing length of each genus, the two components of the hand-wing index.
 
 ### Discussion
 
-<!-- OWNER: Andrew and Stephanie (Stephanie: exploratory checks) -->
+**Does the hand-wing index vary among genera?** The hand-wing index still differs among penguin genera, but the differences are partial: both Welch's ANOVA and Kruskal-Wallis test detected differences and genus explained a large share of the variation ($\omega^2$ = `r round(omega_sq, 2)`, about `r round(omega_sq * 100)`%). The boxplot (@fig-q2-boxplot) shows two loose groups: *Aptenodytes* and *Spheniscus* have the lowest values (means `r sprintf("%.2f", q2_summary$mean[q2_summary$genus == "Aptenodytes"])` and `r sprintf("%.2f", q2_summary$mean[q2_summary$genus == "Spheniscus"])`), while the other four genera sit higher (means `r sprintf("%.2f", min(q2_summary$mean[!q2_summary$genus %in% c("Aptenodytes", "Spheniscus")]))` to `r sprintf("%.2f", max(q2_summary$mean[!q2_summary$genus %in% c("Aptenodytes", "Spheniscus")]))`). Only 5 genus pairs differed significantly (@tbl-q2-posthoc), all with *Aptenodytes* or *Spheniscus* as the lower-index genus. The largest difference, *Megadyptes* versus *Aptenodytes* (`r sprintf("%.2f", q2_gh_sig$diff[1])`, 95% CI `r sprintf("%.2f", q2_gh_sig$ci_low[1])` to `r sprintf("%.2f", q2_gh_sig$ci_high[1])`), has a very wide interval that almost touches zero. The four higher-index genera did not differ significantly, but this is a weak evidence that they are similar, because *Megadyptes* and *Eudyptula* each have only four penguins each and very wide confidence intervals (@tbl-q2-summary). Overall, the hand-wing index has not become uniform across penguins, but the clearest contrasts are between the two lowest-index genera (*Aptenodytes* and *Spheniscus*) and the higher-index genera *Eudyptes* and *Pygoscelis*.  
 
-<!-- (1-3 paragraphs): In the Discussion section, interpret the results of your analysis. Identify any trends revealed (or not revealed) by the plots.Speculate about why the data looks the way it does. -->
+**Why might it differ?** One possible reason is body size. The hand-wing index was negatively correlated with tarsus length (@fig-q2-size), so larger penguins tended to have lower values. The components in @tbl-q2-components fit this idea for the largest genus: *Aptenodytes* has the longest wings by far (mean `r sprintf("%.1f", q2_components$mean_wing[q2_components$genus == "Aptenodytes"])` mm) but a Kipp's distance (`r sprintf("%.2f", q2_components$mean_kipps[q2_components$genus == "Aptenodytes"])`) similar to *Eudyptes* (`r sprintf("%.2f", q2_components$mean_kipps[q2_components$genus == "Eudyptes"])`), so its low index comes from a long wing, not a short Kipp's distance. Size is not the whole story, however: *Spheniscus* has a low index (`r sprintf("%.2f", q2_summary$mean[q2_summary$genus == "Spheniscus"])`) despite medium-sized wings (`r sprintf("%.1f", q2_components$mean_wing[q2_components$genus == "Spheniscus"])` mm), while the smallest genus, *Eudyptula* (wing `r sprintf("%.1f", q2_components$mean_wing[q2_components$genus == "Eudyptula"])` mm), sits among the higher-index genera. @fig-q2-size also shows that the negative trend is driven mainly by the large *Aptenodytes*, while the other genera overlap in tarsus length with no clear pattern. Because this correlation mixes differences between and within genera, it cannot show whether size itself causes the differences. A second interpretation is the adaptation of wings into flippers: because penguins no longer fly, the hand-wing index may no longer be shaped by flight efficiency. Its variation could reflect differences in flipper shape linked to how each genus swims and forages, although our data contain no diving or foraging variables to test this. 
 
-<!-- Do genera differ or are they similar (use the plots, test, effect size and confidence intervals)? Possible reasons, e.g., body size (Stephanie can add a sentence on hand-wing index vs tarsus length) and the adaptation of wings into flippers, as interpretations. Limitations: small samples, penguins of the same species are not independent, no environmental variables. -->
-
-The hand-wing index still differs among penguin genera, but the differences are partial, not clean. Welch's ANOVA detected a difference (F = 14.1, p \< 0.001) and genus explained a large share of the variation (ω² = 0.39). The Kruskal-Wallis test agreed (H = 33.9, p \< 0.001), so the result does not depend on the choice of test. The boxplot (@fig-q2-boxplot) shows two loose groups: *Aptenodytes* and *Spheniscus* have the lowest values (means 3.70 and 4.16), while *Eudyptes*, *Pygoscelis*, *Eudyptula* and *Megadyptes* sit higher (means 5.62 to 7.10). Only 5 genus pairs differed significantly (@tbl-q2-posthoc), and all of them involved *Aptenodytes* or *Spheniscus* as the lower genus. The largest difference was *Megadyptes* versus *Aptenodytes* (3.40, 95% CI 0.17 to 6.63), but its interval is very wide and almost touches zero. The differences among the four higher genera were not significant. That is weak evidence that they are similar, because *Megadyptes* and *Eudyptula* each have only four penguins and very wide confidence intervals (5.14 to 9.06 and 2.97 to 8.28). Overall, hand-wing index has not become uniform across penguins, but only the contrast between the two lowest genera and the rest is well supported.
-
-One possible reason is body size. The hand-wing index was negatively correlated with tarsus length (Spearman's ρ = -0.4, p \< 0.001; Figure 4), so larger penguins tended to have lower values. The components in @tbl-q2-components fit this idea for the largest genus: *Aptenodytes* has the longest wings by far (mean 174.5 mm) but a Kipp's distance (6.45) similar to *Eudyptes* (6.14), so its low index comes from a long wing, not a short Kipp's distance. Size is not the whole story, however. *Spheniscus* has a low index (4.16) despite medium-sized wings (98.9 mm), and the smallest genus, *Eudyptula* (wing 67.3 mm), sits among the higher genera. A correlation of this size also mixes differences between genera with differences within them, so it cannot separate the two. A second interpretation is the adaptation of wings into flippers. Since penguins no longer fly, the hand-wing index is not under selection for flight efficiency. Its variation could reflect differences in flipper shape linked to how each genus swims and forages, but our data contain no diving or foraging variables, so this is speculation. In @fig-q2-size, the hand-wing index tends to decrease as tarsus length increases, mainly because the large-tarsus *Aptenodytes*all have low values (about 3 to 4.5), whereas penguins from the other genera, with tarsus lengths of roughly 18 to 41 mm, span a wide range of values (about 3 to 9) with no obvious trend within genera.
-
-These conclusions have several limitations. Four genera have few penguins (4 to 12), which makes their means imprecise and gives the tests little power, so non-significant pairs should not be read as evidence of no difference. Penguins of the same species are not independent observations, and *Eudyptula* and *Megadyptes* are each represented by a single species, so the genus effect partly reflects a handful of species and the p-values are probably too optimistic. Genera are also related by ancestry, so similar values within a genus may reflect shared history rather than a shared lifestyle. Finally, the data are a snapshot of living species with no environmental variables (diet, diving depth, habitat or water temperature), so we can describe how genera differ but cannot test why.
+**Limitations.** Four genera have few penguins (4 to 12), which makes their means imprecise and gives the tests little power, so non-significant pairs should not be read as evidence of no difference. Penguins of the same species are not independent observations, and *Eudyptula* and *Megadyptes* are each represented by a single species, so the genus effect partly reflects a handful of species and the p-values are probably too optimistic. Genera are also related by ancestry, so similar values within a genus may reflect shared history rather than a shared lifestyle. Sex was unknown for `r sum(q2_sex$U_n)` of `r nrow(q2_data)` penguins, including all *Spheniscus* and *Eudyptula*, so we could not test whether sex affects the hand-wing index. Finally, the hand-wing index was designed for flying birds, so its meaning for penguin flippers is uncertain, and the data are a snapshot of living species with no environmental variables (diet, diving depth, habitat or water temperature), so we can describe how genera differ but cannot test why.  
 
 ## References
 
-<!-- OWNER: All -->
+Cleveland, W. S., & McGill, R. (1984). Graphical perception: Theory, experimentation, and application to the development of graphical methods. *Journal of the American Statistical Association*, 79(387), 531–554. <https://doi.org/10.1080/01621459.1984.10478080>     
 
-<!-- Everybody review the whole document for consistency -->
+Glazier, D. S. (2021). Biological scaling analyses are more than statistical line fitting. Journal of Experimental Biology, 224(11) .<https://doi.org/10.1242/jeb.241059>      
 
-Glazier, D. S. (2021). Biological scaling analyses are more than statistical line fitting. Journal of Experimental Biology, 224(11) .<https://doi.org/10.1242/jeb.241059>
+Heer, J., Bostock, M., & Ogievetsky, V. (2010). A tour through the visualization zoo. *Communications of the ACM*, 53(6), 59–67. <https://doi.org/10.1145/1743546.1743567>   
 
-Sheard, C., Neate-Clegg, M. H. C., Alioravainen, N., Jones, S. E. I., Vincent, C., MacGregor, H. E. A., Bregman, T. P., Claramunt, S., & Tobias, J. A. (2020). Ecological drivers of global gradients in avian dispersal inferred from wing morphology. Nature Communications, 11(1),<https://doi.org/10.1038/s41467-020-16313-6>
+Saket, B., Endert, A., & Demiralp, Ç. (2019). Task-based effectiveness of basic visualizations. *IEEE Transactions on Visualization and Computer Graphics*, 25(7), 2505–2512. <https://doi.org/10.1109/TVCG.2018.2829750>
+
+Sheard, C., Neate-Clegg, M. H. C., Alioravainen, N., Jones, S. E. I., Vincent, C., MacGregor, H. E. A., Bregman, T. P., Claramunt, S., & Tobias, J. A. (2020). Ecological drivers of global gradients in avian dispersal inferred from wing morphology. Nature Communications, 11(1),<https://doi.org/10.1038/s41467-020-16313-6>     
 
 Tobias, J. A., Sheard, C., Pigot, A. L., Devenish, A. J. M., Yang, J., Sayol, F., Neate-Clegg, M. H. C., Alioravainen, N., Weeks, T. L., Barber, R. A., Walkden, P. A., MacGregor, H. E. A., Jones, S. E. I., Vincent, C., Phillips, A. G., Marples, N. M., Montaño-Centellas, F. A., Leandro-Silva, V., Claramunt, S., ... Biggs, R. (2022). AVONET: morphological, ecological and geographical data for all birds. Ecology Letters, 25(3), 581–597. <https://doi.org/10.1111/ele.13898>
 
+
 ## AI Disclosure
-
-<!-- OWNER: All. Each member adds how they used AI (if at all). -->
-
-<!-- Indicate whether and how AI tools were used in this project. For each tool, state its name and what it was used for. -->
 
 **Maria Sans-Fuentes:** Claude (Anthropic) was used to:
 
